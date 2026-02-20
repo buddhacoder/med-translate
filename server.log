@@ -1,0 +1,201 @@
+INFO:     Started server process [91269]
+INFO:     Waiting for application startup.
+2026-02-16 22:28:59,161 medtranslate INFO MedTranslate server starting...
+2026-02-16 22:28:59,188 medtranslate.translation INFO Translation pipeline initialized (NVIDIA NIM — meta/llama-3.3-70b-instruct)
+2026-02-16 22:28:59,188 medtranslate INFO All services initialized
+INFO:     Application startup complete.
+INFO:     Uvicorn running on https://0.0.0.0:8443 (Press CTRL+C to quit)
+INFO:     127.0.0.1:50657 - "WebSocket /ws" [accepted]
+2026-02-16 22:29:32,534 medtranslate INFO WebSocket connected
+INFO:     connection open
+2026-02-16 22:29:32,536 medtranslate.session INFO Session created: test… (en→es)
+2026-02-16 22:29:32,536 medtranslate.audit INFO AUDIT: session_start | session=test | {'from': 'en', 'to': 'es'}
+/Users/macstudiodaddy/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+2026-02-16 22:29:33,210 medtranslate.audit INFO Supabase audit logger connected
+2026-02-16 22:29:33,741 httpx INFO HTTP Request: POST https://kisrahcodpgcinscmgek.supabase.co/rest/v1/audit_trail "HTTP/2 404 Not Found"
+2026-02-16 22:29:33,743 medtranslate.audit WARNING Supabase audit write failed: {'message': "Could not find the table 'public.audit_trail' in the schema cache", 'code': 'PGRST205', 'hint': None, 'details': None}
+2026-02-16 22:29:33,743 medtranslate INFO Session test started: en->es
+2026-02-16 22:29:33,746 medtranslate INFO Translating [en->es]: Hello, do you have any pain?
+2026-02-16 22:29:34,294 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-16 22:29:34,296 medtranslate INFO Translation sent: Hola, ¿tiene algún dolor!
+2026-02-16 22:29:34,300 medtranslate INFO WebSocket disconnected
+2026-02-16 22:29:34,300 medtranslate.session INFO Session ended: test… (1s)
+INFO:     connection closed
+INFO:     127.0.0.1:50695 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51339 - "WebSocket /ws" [accepted]
+2026-02-16 22:47:38,798 medtranslate INFO WebSocket connected
+INFO:     connection open
+2026-02-16 22:47:38,808 medtranslate.session INFO Session created: 9b2dbb77… (en→es)
+2026-02-16 22:47:38,808 medtranslate.audit INFO AUDIT: session_start | session=9b2dbb77 | {'from': 'en', 'to': 'es'}
+2026-02-16 22:47:39,160 httpx INFO HTTP Request: POST https://kisrahcodpgcinscmgek.supabase.co/rest/v1/audit_trail "HTTP/2 404 Not Found"
+2026-02-16 22:47:39,160 medtranslate.audit WARNING Supabase audit write failed: {'message': "Could not find the table 'public.audit_trail' in the schema cache", 'code': 'PGRST205', 'hint': None, 'details': None}
+2026-02-16 22:47:39,160 medtranslate INFO Session 9b2dbb77 started: en->es
+2026-02-16 22:48:07,853 medtranslate INFO WebSocket disconnected
+2026-02-16 22:48:07,854 medtranslate.session INFO Session ended: 9b2dbb77… (29s)
+INFO:     connection closed
+INFO:     127.0.0.1:51372 - "WebSocket /ws" [accepted]
+2026-02-16 22:48:19,123 medtranslate INFO WebSocket connected
+INFO:     connection open
+2026-02-16 22:48:19,132 medtranslate.session INFO Session created: 5f02492f… (en→es)
+2026-02-16 22:48:19,132 medtranslate.audit INFO AUDIT: session_start | session=5f02492f | {'from': 'en', 'to': 'es'}
+2026-02-16 22:48:19,357 httpx INFO HTTP Request: POST https://kisrahcodpgcinscmgek.supabase.co/rest/v1/audit_trail "HTTP/2 404 Not Found"
+2026-02-16 22:48:19,358 medtranslate.audit WARNING Supabase audit write failed: {'message': "Could not find the table 'public.audit_trail' in the schema cache", 'code': 'PGRST205', 'hint': None, 'details': None}
+2026-02-16 22:48:19,358 medtranslate INFO Session 5f02492f started: en->es
+2026-02-16 22:53:06,255 medtranslate INFO WebSocket disconnected
+2026-02-16 22:53:06,256 medtranslate.session INFO Session ended: 5f02492f… (287s)
+INFO:     connection closed
+INFO:     127.0.0.1:53319 - "WebSocket /ws" [accepted]
+2026-02-16 23:34:44,814 medtranslate INFO WebSocket connected
+INFO:     connection open
+2026-02-16 23:34:44,832 medtranslate.session INFO Session created: cd52fe6d… (en→es)
+2026-02-16 23:34:44,832 medtranslate.audit INFO AUDIT: session_start | session=cd52fe6d | {'from': 'en', 'to': 'es'}
+2026-02-16 23:34:45,171 httpx INFO HTTP Request: POST https://kisrahcodpgcinscmgek.supabase.co/rest/v1/audit_trail "HTTP/2 404 Not Found"
+2026-02-16 23:34:45,172 medtranslate.audit WARNING Supabase audit write failed: {'message': "Could not find the table 'public.audit_trail' in the schema cache", 'code': 'PGRST205', 'hint': None, 'details': None}
+2026-02-16 23:34:45,172 medtranslate INFO Session cd52fe6d started: en->es
+2026-02-16 23:37:54,296 medtranslate INFO WebSocket disconnected
+2026-02-16 23:37:54,296 medtranslate.session INFO Session ended: cd52fe6d… (189s)
+INFO:     connection closed
+INFO:     127.0.0.1:54035 - "WebSocket /ws" [accepted]
+2026-02-16 23:53:46,221 medtranslate INFO WebSocket connected
+INFO:     connection open
+2026-02-16 23:53:46,244 medtranslate.session INFO Session created: 73ae169b… (en→es)
+2026-02-16 23:53:46,244 medtranslate.audit INFO AUDIT: session_start | session=73ae169b | {'from': 'en', 'to': 'es'}
+2026-02-16 23:53:46,596 httpx INFO HTTP Request: POST https://kisrahcodpgcinscmgek.supabase.co/rest/v1/audit_trail "HTTP/2 404 Not Found"
+2026-02-16 23:53:46,597 medtranslate.audit WARNING Supabase audit write failed: {'message': "Could not find the table 'public.audit_trail' in the schema cache", 'code': 'PGRST205', 'hint': None, 'details': None}
+2026-02-16 23:53:46,597 medtranslate INFO Session 73ae169b started: en->es
+2026-02-16 23:53:53,383 medtranslate INFO Translating [en->es]: goodgood morninggood morninggood morninggood morninggood mor
+2026-02-16 23:53:54,630 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-16 23:53:54,632 medtranslate INFO Translation sent: buenos díasbuenos díasbuenos díasbuenos díasbuenos díasbueno
+2026-02-16 23:54:12,077 medtranslate INFO Translating [en->es]: good morning
+2026-02-16 23:54:12,634 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-16 23:54:12,636 medtranslate INFO Translation sent: buenos días
+2026-02-16 23:54:21,240 medtranslate INFO Translating [en->es]: I'mI'm going toI'm going toI'm going to beI'm going to beI'm
+2026-02-16 23:54:21,849 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-16 23:54:21,851 medtranslate INFO Translation sent: Voy a ser su anestesiólogo para hoy
+2026-02-16 23:54:30,298 medtranslate INFO Translating [en->es]: do youdo you have any questions for me
+2026-02-16 23:54:30,810 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-16 23:54:30,812 medtranslate INFO Translation sent: ¿Tiene alguna pregunta para mí!
+2026-02-16 23:54:37,619 medtranslate INFO Translating [en->es]: buenos Di
+2026-02-16 23:54:38,078 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-16 23:54:38,079 medtranslate INFO Translation sent: días buenos
+2026-02-16 23:54:51,632 medtranslate INFO Translating [en->es]: goodgood morninggood morninggood morninggood morning I'mgood
+2026-02-16 23:54:52,944 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-16 23:54:52,946 medtranslate INFO Translation sent: buenos días buenos días buenos días buenos días soy buenos d
+2026-02-16 23:55:11,932 medtranslate INFO WebSocket disconnected
+2026-02-16 23:55:11,932 medtranslate.session INFO Session ended: 73ae169b… (85s)
+INFO:     connection closed
+INFO:     127.0.0.1:54602 - "WebSocket /ws" [accepted]
+2026-02-17 00:05:58,650 medtranslate INFO WebSocket connected
+INFO:     connection open
+2026-02-17 00:05:58,666 medtranslate.session INFO Session created: b51d2b78… (en→es)
+2026-02-17 00:05:58,666 medtranslate.audit INFO AUDIT: session_start | session=b51d2b78 | {'from': 'en', 'to': 'es'}
+2026-02-17 00:05:59,001 httpx INFO HTTP Request: POST https://kisrahcodpgcinscmgek.supabase.co/rest/v1/audit_trail "HTTP/2 404 Not Found"
+2026-02-17 00:05:59,002 medtranslate.audit WARNING Supabase audit write failed: {'message': "Could not find the table 'public.audit_trail' in the schema cache", 'code': 'PGRST205', 'hint': None, 'details': None}
+2026-02-17 00:05:59,002 medtranslate INFO Session b51d2b78 started: en->es
+2026-02-17 00:06:04,211 medtranslate INFO Translating [en->es]: good morning I'll be here anesthesia just for today
+2026-02-17 00:06:04,871 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:06:04,872 medtranslate INFO Translation sent: buenos días estaré aquí anestesia solo por hoy
+2026-02-17 00:06:15,979 medtranslate INFO Translating [en->es]: I will be your anesthesiologist for today
+2026-02-17 00:06:16,594 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:06:16,595 medtranslate INFO Translation sent: Seré su anestesiólogo para hoy
+2026-02-17 00:06:27,136 medtranslate INFO Translating [en->es]: today you're going to have a gallbladder removal
+2026-02-17 00:06:27,800 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:06:27,802 medtranslate INFO Translation sent: Hoy se le va a realizar una colecistectomía
+2026-02-17 00:06:38,868 medtranslate INFO Translating [en->es]: I'm going to give you general anesthesia
+2026-02-17 00:06:39,371 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:06:39,371 medtranslate INFO Translation sent: Le voy a administrar anestesia general
+2026-02-17 00:09:05,899 medtranslate INFO WebSocket disconnected
+2026-02-17 00:09:05,899 medtranslate.session INFO Session ended: b51d2b78… (187s)
+INFO:     connection closed
+INFO:     127.0.0.1:55003 - "WebSocket /ws" [accepted]
+2026-02-17 00:13:26,124 medtranslate INFO WebSocket connected
+INFO:     connection open
+2026-02-17 00:13:26,171 medtranslate.session INFO Session created: 627755a2… (en→es)
+2026-02-17 00:13:26,172 medtranslate.audit INFO AUDIT: session_start | session=627755a2 | {'from': 'en', 'to': 'es'}
+2026-02-17 00:13:26,750 httpx INFO HTTP Request: POST https://kisrahcodpgcinscmgek.supabase.co/rest/v1/audit_trail "HTTP/2 404 Not Found"
+2026-02-17 00:13:26,750 medtranslate.audit WARNING Supabase audit write failed: {'message': "Could not find the table 'public.audit_trail' in the schema cache", 'code': 'PGRST205', 'hint': None, 'details': None}
+2026-02-17 00:13:26,751 medtranslate INFO Session 627755a2 started: en->es
+INFO:     127.0.0.1:55208 - "WebSocket /ws" [accepted]
+2026-02-17 00:18:05,971 medtranslate INFO WebSocket connected
+INFO:     connection open
+2026-02-17 00:18:05,991 medtranslate.session INFO Session created: 575d8687… (en→es)
+2026-02-17 00:18:05,991 medtranslate.audit INFO AUDIT: session_start | session=575d8687 | {'from': 'en', 'to': 'es'}
+2026-02-17 00:18:06,252 httpx INFO HTTP Request: POST https://kisrahcodpgcinscmgek.supabase.co/rest/v1/audit_trail "HTTP/2 404 Not Found"
+2026-02-17 00:18:06,252 medtranslate.audit WARNING Supabase audit write failed: {'message': "Could not find the table 'public.audit_trail' in the schema cache", 'code': 'PGRST205', 'hint': None, 'details': None}
+2026-02-17 00:18:06,252 medtranslate INFO Session 575d8687 started: en->es
+2026-02-17 00:18:15,744 medtranslate INFO Translating [en->es]: good morning I'll be your anesthesia all just today
+2026-02-17 00:18:16,436 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:18:16,437 medtranslate INFO Translation sent: buenos días seré su anestesia de hoy solo por hoy
+2026-02-17 00:18:25,148 medtranslate INFO Translating [en->es]: have you had anything to eat today
+2026-02-17 00:18:25,780 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:18:25,781 medtranslate INFO Translation sent: ¿Ha comido algo hoy!
+2026-02-17 00:18:35,611 medtranslate INFO Translating [en->es]: any history of chest pain or shortness of breath heart attac
+2026-02-17 00:18:36,299 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:18:36,302 medtranslate INFO Translation sent: cualquier antecedente de dolor en el pecho o dificultad para
+2026-02-17 00:20:25,684 medtranslate INFO WebSocket disconnected
+2026-02-17 00:20:25,684 medtranslate.session INFO Session ended: 575d8687… (139s)
+INFO:     connection closed
+2026-02-17 00:24:45,627 medtranslate INFO WebSocket disconnected
+2026-02-17 00:24:45,628 medtranslate.session INFO Session ended: 627755a2… (679s)
+INFO:     connection closed
+INFO:     127.0.0.1:55678 - "WebSocket /ws" [accepted]
+2026-02-17 00:25:28,186 medtranslate INFO WebSocket connected
+INFO:     connection open
+2026-02-17 00:25:28,188 medtranslate.session INFO Session created: 024561d3… (en→es)
+2026-02-17 00:25:28,188 medtranslate.audit INFO AUDIT: session_start | session=024561d3 | {'from': 'en', 'to': 'es'}
+2026-02-17 00:25:28,586 httpx INFO HTTP Request: POST https://kisrahcodpgcinscmgek.supabase.co/rest/v1/audit_trail "HTTP/2 404 Not Found"
+2026-02-17 00:25:28,586 medtranslate.audit WARNING Supabase audit write failed: {'message': "Could not find the table 'public.audit_trail' in the schema cache", 'code': 'PGRST205', 'hint': None, 'details': None}
+2026-02-17 00:25:28,586 medtranslate INFO Session 024561d3 started: en->es
+INFO:     127.0.0.1:55902 - "WebSocket /ws" [accepted]
+2026-02-17 00:30:27,350 medtranslate INFO WebSocket connected
+INFO:     connection open
+2026-02-17 00:30:27,375 medtranslate.session INFO Session created: 6130c0a0… (en→es)
+2026-02-17 00:30:27,376 medtranslate.audit INFO AUDIT: session_start | session=6130c0a0 | {'from': 'en', 'to': 'es'}
+2026-02-17 00:30:27,731 httpx INFO HTTP Request: POST https://kisrahcodpgcinscmgek.supabase.co/rest/v1/audit_trail "HTTP/2 404 Not Found"
+2026-02-17 00:30:27,731 medtranslate.audit WARNING Supabase audit write failed: {'message': "Could not find the table 'public.audit_trail' in the schema cache", 'code': 'PGRST205', 'hint': None, 'details': None}
+2026-02-17 00:30:27,731 medtranslate INFO Session 6130c0a0 started: en->es
+2026-02-17 00:30:42,524 medtranslate INFO Translating [en->es]: buenos dias
+2026-02-17 00:30:43,070 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:30:43,072 medtranslate INFO Translation sent: Buenos días
+2026-02-17 00:30:45,246 medtranslate INFO Translating [en->es]: when is the Earth
+2026-02-17 00:30:45,630 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:30:45,631 medtranslate INFO Translation sent: cuándo es la Tierra
+2026-02-17 00:31:00,717 medtranslate INFO Translating [es->en]: Buenos días
+2026-02-17 00:31:01,158 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:31:01,159 medtranslate INFO Translation sent: Good morning
+2026-02-17 00:31:17,322 medtranslate INFO Translating [es->en]: Cómo estás
+2026-02-17 00:31:17,785 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:31:17,787 medtranslate INFO Translation sent: How are you
+2026-02-17 00:33:03,120 medtranslate INFO WebSocket disconnected
+2026-02-17 00:33:03,120 medtranslate.session INFO Session ended: 024561d3… (454s)
+INFO:     connection closed
+2026-02-17 00:33:03,794 medtranslate INFO WebSocket disconnected
+2026-02-17 00:33:03,794 medtranslate.session INFO Session ended: 6130c0a0… (156s)
+INFO:     connection closed
+INFO:     127.0.0.1:56166 - "WebSocket /ws" [accepted]
+2026-02-17 00:34:19,970 medtranslate INFO WebSocket connected
+INFO:     connection open
+2026-02-17 00:34:19,984 medtranslate.session INFO Session created: 8a0462e4… (en→es)
+2026-02-17 00:34:19,984 medtranslate.audit INFO AUDIT: session_start | session=8a0462e4 | {'from': 'en', 'to': 'es'}
+2026-02-17 00:34:20,249 httpx INFO HTTP Request: POST https://kisrahcodpgcinscmgek.supabase.co/rest/v1/audit_trail "HTTP/2 404 Not Found"
+2026-02-17 00:34:20,249 medtranslate.audit WARNING Supabase audit write failed: {'message': "Could not find the table 'public.audit_trail' in the schema cache", 'code': 'PGRST205', 'hint': None, 'details': None}
+2026-02-17 00:34:20,250 medtranslate INFO Session 8a0462e4 started: en->es
+2026-02-17 00:34:34,702 medtranslate INFO Translating [en->es]: good morning it's a pleasure to meet you today I'll be your 
+2026-02-17 00:34:35,416 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:34:35,417 medtranslate INFO Translation sent: Buenos días, es un placer conocerlo hoy, seré su anestesista
+2026-02-17 00:34:48,924 medtranslate INFO Translating [en->es]: I just want to let you know I'm going to take great care of 
+2026-02-17 00:34:49,684 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:34:49,685 medtranslate INFO Translation sent: Solo quiero hacerle saber que voy a cuidarla muy bien, hoy v
+2026-02-17 00:35:08,801 medtranslate INFO Translating [en->es]: do you have any questions for me if you do just wait for me 
+2026-02-17 00:35:09,545 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:35:09,548 medtranslate INFO Translation sent: ¿Tiene alguna pregunta para mí? Si la tiene, espere a que le
+2026-02-17 00:35:36,959 medtranslate INFO Translating [en->es]: buenos dias doctor
+2026-02-17 00:35:37,426 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:35:37,429 medtranslate INFO Translation sent: Buenos días doctor
+2026-02-17 00:35:43,684 medtranslate INFO Translating [es->en]: Buenos días doctor
+2026-02-17 00:35:44,133 httpx INFO HTTP Request: POST https://integrate.api.nvidia.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-17 00:35:44,138 medtranslate INFO Translation sent: Good morning doctor
+2026-02-17 00:40:49,831 medtranslate INFO WebSocket disconnected
+2026-02-17 00:40:49,832 medtranslate.session INFO Session ended: 8a0462e4… (389s)
+INFO:     connection closed

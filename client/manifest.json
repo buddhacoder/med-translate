@@ -1,0 +1,17 @@
+{
+  "name": "MedTranslate",
+  "short_name": "MedTranslate",
+  "description": "HIPAA-Compliant Real-Time Medical Translation",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0a0e1a",
+  "background_color": "#0a0e1a",
+  "icons": [
+    { "src": "/icons/icon.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "/icons/icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "/icons/icon-512.png", "type": "image/png", "sizes": "512x512" }
+  ],
+  "categories": ["medical", "health"],
+  "lang": "en"
+}

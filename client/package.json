@@ -1,0 +1,19 @@
+{
+  "name": "medtranslate-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MedTranslate PWA — HIPAA-compliant medical translation client",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "^2.1.4",
+    "vite": "^6.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.47.0"
+  }
+}
