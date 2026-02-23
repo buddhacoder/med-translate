@@ -33,23 +33,37 @@ var state = {
   // Slider
   sliderSide: 'left',  // 'left' = EN->target, 'right' = target->EN
   isDragging: false,
-  dragStartX: 0
+  dragStartX: 0,
+  // Interview Flow
+  interview: { active: false, stepIndex: 0, answers: [] }
 };
 
-var loginScreen, specialtyScreen, setupScreen, sessionScreen, pinDigits, loginBtn;
-var langCards, startBtn;
+var INTERVIEW_QUESTIONS = [
+  "Are you currently experiencing any pain?",
+  "Can you point to where it hurts?",
+  "When did the pain start?",
+  "Are you taking any medications right now?"
+];
+
+var loginScreen, specialtyScreen, setupScreen, validationScreen, sessionScreen, pinDigits, loginBtn;
+var langCards, startBtn, specialtyCards, confirmSpecialtyBtn;
 var connectionDot, sessionTimer, activeFrom, activeTo;
 var waveformStatus, statusText;
 var originalText, translatedText, micToggle, endSessionBtn, toastEl;
 var sliderTrack, sliderHint, sliderLabelLeft, sliderLabelRight;
+var interviewControls, startInterviewBtn, interviewNextBtn, interviewSkipBtn;
+var summaryScreen, summaryContent, closeSummaryBtn;
 
 function cacheDom() {
   loginScreen = document.querySelector('#login-screen');
   specialtyScreen = document.querySelector('#specialty-screen');
   setupScreen = document.querySelector('#setup-screen');
+  validationScreen = document.querySelector('#validation-screen');
   sessionScreen = document.querySelector('#session-screen');
   pinDigits = document.querySelectorAll('.pin-digit');
   loginBtn = document.querySelector('#login-btn');
+  specialtyCards = document.querySelectorAll('.specialty-card');
+  confirmSpecialtyBtn = document.querySelector('#confirm-specialty-btn');
   langCards = document.querySelectorAll('.lang-flag-card');
   startBtn = document.querySelector('#start-session-btn');
   connectionDot = document.querySelector('#connection-dot');
@@ -67,27 +81,42 @@ function cacheDom() {
   sliderHint = document.querySelector('#slider-hint');
   sliderLabelLeft = document.querySelector('#slider-label-left');
   sliderLabelRight = document.querySelector('#slider-label-right');
+
+  interviewControls = document.querySelector('#interview-controls');
+  startInterviewBtn = document.querySelector('#start-interview-btn');
+  interviewNextBtn = document.querySelector('#interview-next-btn');
+  interviewSkipBtn = document.querySelector('#interview-skip-btn');
+
+  summaryScreen = document.querySelector('#summary-screen');
+  summaryContent = document.querySelector('#summary-content');
+  closeSummaryBtn = document.querySelector('#close-summary-btn');
 }
 
 function showScreen(name) {
   state.screen = name;
-  loginScreen.classList.toggle('hidden', name !== 'login');
-  specialtyScreen.classList.toggle('hidden', name !== 'specialty');
-  setupScreen.classList.toggle('hidden', name !== 'setup');
-  sessionScreen.classList.toggle('hidden', name !== 'session');
+  if (loginScreen) loginScreen.classList.toggle('hidden', name !== 'login');
+  if (specialtyScreen) specialtyScreen.classList.toggle('hidden', name !== 'specialty');
+  if (setupScreen) setupScreen.classList.toggle('hidden', name !== 'setup');
+  if (validationScreen) validationScreen.classList.toggle('hidden', name !== 'validation');
+  if (sessionScreen) sessionScreen.classList.toggle('hidden', name !== 'session');
+
+  const donateBtn = document.querySelector('.donate-btn');
+  if (donateBtn) {
+    donateBtn.style.display = (name === 'session') ? 'none' : '';
+  }
 }
 
 function showToast(message, type) {
   if (!type) type = 'error';
   toastEl.textContent = message;
   toastEl.className = 'toast ' + type + ' show';
-  setTimeout(function() { toastEl.classList.remove('show'); }, 3500);
+  setTimeout(function () { toastEl.classList.remove('show'); }, 3500);
 }
 
 /* ── PIN ── */
 function initPinInput() {
-  pinDigits.forEach(function(input, i) {
-    input.addEventListener('input', function(e) {
+  pinDigits.forEach(function (input, i) {
+    input.addEventListener('input', function (e) {
       var val = e.target.value.replace(/\D/g, '');
       e.target.value = val;
       if (val) {
@@ -96,7 +125,7 @@ function initPinInput() {
       }
       updatePinState();
     });
-    input.addEventListener('keydown', function(e) {
+    input.addEventListener('keydown', function (e) {
       if (e.key === 'Backspace' && !e.target.value && i > 0) {
         pinDigits[i - 1].focus();
         pinDigits[i - 1].value = '';
@@ -109,30 +138,48 @@ function initPinInput() {
 }
 
 function updatePinState() {
-  state.pin = Array.from(pinDigits).map(function(d) { return d.value; }).join('');
+  state.pin = Array.from(pinDigits).map(function (d) { return d.value; }).join('');
   loginBtn.disabled = state.pin.length < 6;
 }
 
 function handleLogin() {
   if (state.pin.length === 6) {
     showToast('Authenticated', 'success');
-    setTimeout(function() { showScreen('specialty'); }, 300);
+    setTimeout(function () { showScreen('specialty'); }, 300);
   } else {
     showToast('Enter a 6-digit PIN');
   }
 }
 
+/* ── Specialty Select ── */
+function initSpecialtySelect() {
+  if (!specialtyCards || !confirmSpecialtyBtn) return;
+  specialtyCards.forEach(function (card) {
+    card.addEventListener('click', function () {
+      specialtyCards.forEach(function (c) { c.classList.remove('selected'); });
+      card.classList.add('selected');
+      state.specialty = card.dataset.specialty;
+      confirmSpecialtyBtn.disabled = false;
+    });
+  });
+  confirmSpecialtyBtn.addEventListener('click', function () {
+    if (state.specialty) {
+      showScreen('setup');
+    }
+  });
+}
+
 /* ── Language Select ── */
 function initLanguageSelect() {
-  langCards.forEach(function(card) {
-    card.addEventListener('click', function() {
-      langCards.forEach(function(c) { c.classList.remove('selected'); });
+  langCards.forEach(function (card) {
+    card.addEventListener('click', function () {
+      langCards.forEach(function (c) { c.classList.remove('selected'); });
       card.classList.add('selected');
       state.selectedLang = card.dataset.lang;
       state.targetLocale = card.dataset.locale || card.dataset.lang;
       state.direction.to = card.dataset.lang;
       startBtn.disabled = false;
-      
+
       var tb = document.getElementById('train-mode-toggle');
       if (tb) {
         tb.style.display = (state.selectedLang === 'ht') ? 'inline-block' : 'none';
@@ -146,7 +193,7 @@ function generateUUID() {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
   }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0;
     return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
   });
@@ -199,7 +246,7 @@ function endSession() {
 function startRecTimer() {
   state.recStartTime = Date.now();
   sessionTimer.classList.add('active');
-  state.recTimerInterval = setInterval(function() {
+  state.recTimerInterval = setInterval(function () {
     var ms = Date.now() - state.recStartTime + state.recElapsed;
     var secs = Math.floor(ms / 1000);
     var m = Math.floor(secs / 60);
@@ -297,7 +344,7 @@ function initSlider() {
     state.dragStartX = getClientX(e);
 
     // Start a hold timer - if user holds without dragging, start recording
-    holdTimer = setTimeout(function() {
+    holdTimer = setTimeout(function () {
       if (!hasDragged) {
         state.isDragging = false;
         startRecording();
@@ -341,9 +388,9 @@ function initSlider() {
     if (!state.isDragging) return;
     state.isDragging = false;
 
-    if (!hasDragged) {
-      // Pure tap, no drag — start recording
-      startRecording();
+    if (!hasDragged && !state.isRecording) {
+      // Pure tap, no drag — enforce 'Hold to Talk' instead of getting stuck
+      showToast('Hold to speak', 'warning');
       return;
     }
 
@@ -377,7 +424,7 @@ function initSlider() {
 
 /* ── Session Controls ── */
 function initSessionControls() {
-  endSessionBtn.addEventListener('click', function() { if (confirm('End session?')) endSession(); });
+  endSessionBtn.addEventListener('click', function () { if (confirm('End session?')) endSession(); });
   initSlider();
 }
 
@@ -408,7 +455,7 @@ function startRecording() {
 
   var latestTranscript = '';
 
-  rec.onresult = function(event) {
+  rec.onresult = function (event) {
     var lastIdx = event.results.length - 1;
     var result = event.results[lastIdx];
     var transcript = result[0].transcript;
@@ -417,7 +464,7 @@ function startRecording() {
     console.log('Speech:', transcript, 'isFinal:', result.isFinal);
   };
 
-  rec.onerror = function(event) {
+  rec.onerror = function (event) {
     console.warn('Speech error:', event.error);
     if (event.error === 'not-allowed') {
       showToast('Microphone permission denied');
@@ -430,11 +477,11 @@ function startRecording() {
     }
   };
 
-  rec.onend = function() {
+  rec.onend = function () {
     console.log('Recognition ended. isRecording:', state.isRecording, 'transcript:', latestTranscript);
     if (state.isRecording && (!latestTranscript || latestTranscript.length < 2)) {
       console.log('No speech yet, restarting');
-      try { rec.start(); return; } catch(e) { console.warn('Restart failed:', e); }
+      try { rec.start(); return; } catch (e) { console.warn('Restart failed:', e); }
     }
     if (state.isRecording) state.isRecording = false;
 
@@ -465,7 +512,7 @@ function stopRecording() {
   state.isRecording = false;
   stopRecTimer();
   if (state.recognition) {
-    try { state.recognition.stop(); } catch(e) {}
+    try { state.recognition.stop(); } catch (e) { }
   }
 }
 
@@ -494,12 +541,12 @@ function sendForTranslation(text) {
 }
 
 function connectWebSocket() {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     try {
       var ws = new WebSocket(CONFIG.WS_URL);
-      var timeout = setTimeout(function() { ws.close(); reject(new Error('Connection timeout')); }, 8000);
+      var timeout = setTimeout(function () { ws.close(); reject(new Error('Connection timeout')); }, 8000);
 
-      ws.onopen = function() {
+      ws.onopen = function () {
         clearTimeout(timeout);
         state.ws.socket = ws;
         state.ws.connected = true;
@@ -514,7 +561,7 @@ function connectWebSocket() {
         resolve();
       };
 
-      ws.onmessage = function(event) {
+      ws.onmessage = function (event) {
         try {
           var msg = JSON.parse(event.data);
           console.log('WS:', msg);
@@ -524,8 +571,15 @@ function connectWebSocket() {
             var transB = document.querySelector('#translated-transcript');
             if (origB) origB.classList.add('active');
             if (transB) transB.classList.add('active');
-            setStatus('speaking');
-            speakTranslation(msg.text, state.direction.to);
+
+            // Capture Patient Answer in Interview Flow
+            if (state.interview && state.interview.active && state.sliderSide === 'right' && state.direction.to === 'en') {
+              state.interview.answers[state.interview.stepIndex] = msg.text;
+              setStatus('ready'); // Prevent TTS from speaking English back to the doctor
+            } else {
+              setStatus('speaking');
+              speakTranslation(msg.text, state.direction.to);
+            }
           } else if (msg.type === 'error') {
             showToast(msg.message);
             setStatus('ready');
@@ -533,18 +587,18 @@ function connectWebSocket() {
         } catch (e) { console.warn('WS parse error:', e); }
       };
 
-      ws.onclose = function() {
+      ws.onclose = function () {
         state.ws.connected = false;
         connectionDot.classList.add('disconnected');
         if (state.session.active && state.ws.reconnectAttempts < CONFIG.RECONNECT_MAX) {
           state.ws.reconnectAttempts++;
-          setTimeout(function() {
-            connectWebSocket().catch(function(e) { console.warn('Reconnect fail:', e); });
+          setTimeout(function () {
+            connectWebSocket().catch(function (e) { console.warn('Reconnect fail:', e); });
           }, CONFIG.RECONNECT_DELAY * state.ws.reconnectAttempts);
         }
       };
 
-      ws.onerror = function() {
+      ws.onerror = function () {
         clearTimeout(timeout);
         if (state.ws.reconnectAttempts === 0) reject(new Error('Cannot connect'));
       };
@@ -560,19 +614,93 @@ function speakTranslation(text, lang) {
   utterance.lang = langInfo ? langInfo.speechCode : lang;
   utterance.rate = 0.9;
   utterance.pitch = 1.0;
-  utterance.onend = function() {
+  utterance.onend = function () {
     setStatus('ready');
     originalText.textContent = 'Slide mic & hold to speak';
-    setTimeout(function() {
+
+    // Auto-listen for patient response in Interview Flow
+    if (state.interview && state.interview.active && state.sliderSide === 'left') {
+      setTimeout(function () {
+        snapSlider('right'); // Switch target -> EN
+        startRecording();    // Auto activate mic
+      }, 500);
+    }
+
+    setTimeout(function () {
       var origB = document.querySelector('#original-transcript');
       var transB = document.querySelector('#translated-transcript');
       if (origB) origB.classList.remove('active');
       if (transB) transB.classList.remove('active');
     }, 2000);
   };
-  utterance.onerror = function() { setStatus('ready'); };
+  utterance.onerror = function () { setStatus('ready'); };
   speechSynthesis.speak(utterance);
 }
+
+/* ── Interview Flow ── */
+function initInterviewFlow() {
+  if (startInterviewBtn) startInterviewBtn.addEventListener('click', startInterviewFlow);
+  if (interviewNextBtn) interviewNextBtn.addEventListener('click', advanceInterview);
+  if (interviewSkipBtn) interviewSkipBtn.addEventListener('click', endInterview);
+  if (closeSummaryBtn) closeSummaryBtn.addEventListener('click', function () {
+    summaryScreen.classList.add('hidden');
+  });
+}
+
+function startInterviewFlow() {
+  state.interview.active = true;
+  state.interview.stepIndex = -1;
+  state.interview.answers = [];
+
+  document.getElementById('presets-menu').classList.add('hidden');
+  document.getElementById('presets-toggle-btn').classList.remove('active');
+  interviewControls.classList.remove('hidden');
+
+  advanceInterview();
+}
+
+function advanceInterview() {
+  state.interview.stepIndex++;
+
+  if (state.interview.stepIndex >= INTERVIEW_QUESTIONS.length) {
+    endInterview();
+    return;
+  }
+
+  const question = INTERVIEW_QUESTIONS[state.interview.stepIndex];
+  originalText.textContent = question;
+
+  // Doctor -> Patient (Force left side)
+  snapSlider('left');
+  sendForTranslation(question);
+}
+
+function endInterview() {
+  state.interview.active = false;
+  interviewControls.classList.add('hidden');
+  stopRecording();
+  renderSummary();
+}
+
+function renderSummary() {
+  summaryContent.innerHTML = '';
+
+  if (state.interview.answers.length === 0) {
+    summaryContent.innerHTML = '<p style="color:#8da4c0;text-align:center;">No answers recorded.</p>';
+  } else {
+    state.interview.answers.forEach((ans, i) => {
+      summaryContent.innerHTML += `
+        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px;">
+          <div style="font-size: 0.8rem; color: var(--accent); margin-bottom: 0.4rem;">Q: ${INTERVIEW_QUESTIONS[i] || 'Question'}</div>
+          <div style="color: #fff;">A: ${ans}</div>
+        </div>
+      `;
+    });
+  }
+
+  summaryScreen.classList.remove('hidden');
+}
+
 
 function setStatus(s) {
   waveformStatus.className = 'waveform-status ' + s;
@@ -587,18 +715,56 @@ function setStatus(s) {
 
 async function registerSW() {
   if ('serviceWorker' in navigator) {
-    try { await navigator.serviceWorker.register('/sw.js'); } catch (e) {}
+    try { await navigator.serviceWorker.register('/sw.js'); } catch (e) { }
   }
 }
 
 function init() {
   cacheDom();
   initPinInput();
+  initSpecialtySelect();
   initLanguageSelect();
   initSessionControls();
+  initPresetsMenu();
+  initInterviewFlow();
   registerSW();
   if (pinDigits[0]) pinDigits[0].focus();
 }
+
+function initPresetsMenu() {
+  const toggleBtn = document.getElementById('presets-toggle-btn');
+  const presetsMenu = document.getElementById('presets-menu');
+
+  if (toggleBtn && presetsMenu) {
+    toggleBtn.addEventListener('click', function () {
+      const isHidden = presetsMenu.classList.contains('hidden');
+      if (isHidden) {
+        presetsMenu.classList.remove('hidden');
+        toggleBtn.classList.add('active');
+      } else {
+        presetsMenu.classList.add('hidden');
+        toggleBtn.classList.remove('active');
+      }
+    });
+
+    // Handle clicking a specific preset item
+    const presetItems = document.querySelectorAll('.preset-item');
+    presetItems.forEach(item => {
+      item.addEventListener('click', function () {
+        const textToTranslate = this.getAttribute('data-text');
+        if (textToTranslate) {
+          originalText.textContent = textToTranslate;
+          sendForTranslation(textToTranslate);
+
+          // Collapse menu after selection
+          presetsMenu.classList.add('hidden');
+          toggleBtn.classList.remove('active');
+        }
+      });
+    });
+  }
+}
+
 
 document.addEventListener('DOMContentLoaded', init);
 
@@ -625,7 +791,7 @@ var currentPhraseIndex = 0;
 var trainMediaRecorder = null;
 var trainAudioChunks = [];
 
-trainToggleBtn.addEventListener('click', function() {
+trainToggleBtn.addEventListener('click', function () {
   if (!state.selectedLang) {
     showToast("Please select a target language first.", "error");
     return;
@@ -636,7 +802,7 @@ trainToggleBtn.addEventListener('click', function() {
   loadNextPhrase();
 });
 
-exitTrainBtn.addEventListener('click', function() {
+exitTrainBtn.addEventListener('click', function () {
   trainScreen.classList.add('hidden');
   document.getElementById('setup-screen').classList.remove('hidden');
 });
@@ -648,38 +814,38 @@ function loadNextPhrase() {
 
 trainRecordBtn.addEventListener('mousedown', startTrainingRecording);
 trainRecordBtn.addEventListener('mouseup', stopTrainingRecording);
-trainRecordBtn.addEventListener('mouseleave', function() {
+trainRecordBtn.addEventListener('mouseleave', function () {
   if (trainMediaRecorder && trainMediaRecorder.state === 'recording') {
     stopTrainingRecording();
   }
 });
 
 // Touch support for mobile
-trainRecordBtn.addEventListener('touchstart', function(e) { e.preventDefault(); startTrainingRecording(); });
-trainRecordBtn.addEventListener('touchend', function(e) { e.preventDefault(); stopTrainingRecording(); });
+trainRecordBtn.addEventListener('touchstart', function (e) { e.preventDefault(); startTrainingRecording(); });
+trainRecordBtn.addEventListener('touchend', function (e) { e.preventDefault(); stopTrainingRecording(); });
 
 async function startTrainingRecording() {
   trainStatusText.textContent = "Recording...";
   trainStatusText.style.color = "#ff4444";
   trainRecordBtn.style.background = "#ff4444";
   trainRecordBtn.style.animation = "pulse-shadow 1.5s infinite";
-  
+
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     trainMediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
     trainAudioChunks = [];
-    
+
     trainMediaRecorder.ondataavailable = e => {
       if (e.data.size > 0) trainAudioChunks.push(e.data);
     };
-    
+
     trainMediaRecorder.onstop = () => {
       const audioBlob = new Blob(trainAudioChunks, { type: 'audio/webm' });
       uploadTrainingAudio(audioBlob, trainingPhrases[currentPhraseIndex]);
       // Stop all tracks to release mic
       stream.getTracks().forEach(track => track.stop());
     };
-    
+
     trainMediaRecorder.start();
   } catch (err) {
     showToast("Microphone access denied", "error");
@@ -708,9 +874,87 @@ function uploadTrainingAudio(blob, phrase) {
   formData.append('phrase', phrase);
   formData.append('lang', state.selectedLang);
   formData.append('pin', state.pin);
-  
+
   fetch('/api/train', {
     method: 'POST',
     body: formData
   }).catch(err => console.error("Upload failed", err));
 }
+
+
+
+var validationScreen = document.querySelector('#validation-screen');
+var validateToggleBtn = document.querySelector('#validate-mode-toggle');
+var valPhrase = document.querySelector('#val-phrase');
+var valAudio = document.querySelector('#val-audio');
+var valApproveBtn = document.querySelector('#val-approve-btn');
+var valRejectBtn = document.querySelector('#val-reject-btn');
+var valStatus = document.querySelector('#val-status');
+var validationQueue = [];
+var currentValidationItem = null;
+
+if (validateToggleBtn) {
+  validateToggleBtn.addEventListener('click', function () {
+    showScreen('validation');
+    fetchValidationQueue();
+  });
+}
+document.querySelector('#logout-btn-validation').addEventListener('click', function () {
+  showScreen('login');
+});
+
+async function fetchValidationQueue() {
+  valStatus.textContent = "Fetching audio queue...";
+  valApproveBtn.disabled = true; valRejectBtn.disabled = true;
+  try {
+    const res = await fetch('http://localhost:8443/api/train/queue');
+    validationQueue = await res.json();
+    if (validationQueue.length === 0) {
+      valPhrase.textContent = "Queue is empty! Great job.";
+      valStatus.textContent = "No pending clips.";
+      valAudio.src = "";
+    } else {
+      nextValidationItem();
+    }
+  } catch (e) {
+    valStatus.textContent = "Error fetching queue.";
+  }
+}
+
+function nextValidationItem() {
+  if (validationQueue.length === 0) { fetchValidationQueue(); return; }
+  currentValidationItem = validationQueue.shift();
+
+  // NOTE: In an ideal world we join with training_phrases to show the english text.
+  // We'll show the ID for now, or just say 'Native Speaker Translation' since we simplified Phase 11.
+  valPhrase.textContent = "Haitian Creole Audio ID: " + currentValidationItem.id.substring(0, 8);
+  valAudio.src = currentValidationItem.audio_url;
+  valStatus.textContent = validationQueue.length + " clips remaining in queue.";
+  valApproveBtn.disabled = false;
+  valRejectBtn.disabled = false;
+}
+
+async function submitReview(isApproved) {
+  if (!currentValidationItem) return;
+  valApproveBtn.disabled = true; valRejectBtn.disabled = true;
+  valStatus.textContent = "Submitting review...";
+
+  const fd = new FormData();
+  fd.append('record_id', currentValidationItem.id);
+  fd.append('is_approved', isApproved);
+  fd.append('pin', state.pin);
+
+  try {
+    await fetch('http://localhost:8443/api/train/review', { method: 'POST', body: fd });
+    nextValidationItem();
+  } catch (e) {
+    valStatus.textContent = "Error submitting. Try again.";
+    valApproveBtn.disabled = false; valRejectBtn.disabled = false;
+  }
+}
+
+if (valApproveBtn) {
+  valApproveBtn.addEventListener('click', () => submitReview('true'));
+  valRejectBtn.addEventListener('click', () => submitReview('false'));
+}
+

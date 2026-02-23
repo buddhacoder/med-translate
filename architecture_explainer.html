@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedTranslate Architecture</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg: #0A0A0B;
+            --surface: #141517;
+            --border: #2A2B30;
+            --text: #F3F4F6;
+            --text-dim: #9CA3AF;
+            --accent-cyan: #22D3EE;
+            --accent-cyan-dim: rgba(34, 211, 238, 0.1);
+            --accent-green: #34D399;
+            --accent-green-dim: rgba(52, 211, 153, 0.1);
+            --accent-purple: #A78BFA;
+            --accent-purple-dim: rgba(167, 139, 250, 0.1);
+
+            --font-display: 'Outfit', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-display);
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .mermaid-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 8px;
+            background: var(--bg);
+            padding: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .explanation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .exp-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .exp-card h3 {
+            margin: 0 0 1rem 0;
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            color: var(--accent-cyan);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .exp-card p {
+            color: var(--text-dim);
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            background: var(--accent-purple-dim);
+            color: var(--accent-purple);
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <span class="badge">SYSTEM ARCHITECTURE</span>
+            <h1>Cloud-Enabled MedTranslate</h1>
+            <p class="subtitle">Complete data flow from the PWA on your phone to NVIDIA's Cloud AI APIs.</p>
+        </header>
+
+        <div class="card">
+            <div class="mermaid-wrapper">
+                <div class="mermaid">
+                    flowchart TD
+                    %% Styles
+                    classDef frontend fill:#141517,stroke:#22D3EE,stroke-width:2px,color:#F3F4F6
+                    classDef network fill:#141517,stroke:#9CA3AF,stroke-width:1px,stroke-dasharray: 5 5,color:#F3F4F6
+                    classDef backend fill:#141517,stroke:#A78BFA,stroke-width:2px,color:#F3F4F6
+                    classDef database fill:#141517,stroke:#34D399,stroke-width:2px,color:#F3F4F6
+                    classDef cloudai fill:#2A2B30,stroke:#34D399,stroke-width:2px,color:#10B981
+
+                    %% Nodes
+                    Phone["📱 Android/iOS Phone\n(MedTranslate PWA)"]:::frontend
+                    Tunnel["🚇 Cloudflare Tunnel\ntranslate.theaidoc.ai"]:::network
+
+                    subgraph Mac["Mac Studio Server (Your Desktop)"]
+                    Vite["🖥️ Vite Frontend\nDaemon (Port 3000)"]:::frontend
+                    FastAPI["⚡ FastAPI Backend\nDaemon (Port 8443)"]:::backend
+                    end
+
+                    Supabase[("🗄️ Supabase\nAuth / Storage\n(Cloud)")]:::database
+                    NVIDIACloud["🧠 NVIDIA NIM API\nintegrate.api.nvidia.com\n(Llama 3.3 70B)"]:::cloudai
+
+                    %% Connections
+                    Phone -- "HTTPS" --> Tunnel
+                    Phone -- "Secure WebSocket (WSS)" --> FastAPI
+                    Tunnel -- "Routes to localhost" --> Vite
+                    FastAPI -- "Saves Voice Data" --> Supabase
+                    FastAPI -- "Requests Translation" --> NVIDIACloud
+                    NVIDIACloud -- "Returns Translation" --> FastAPI
+                    FastAPI -- "Sends Result to UI" --> Phone
+                </div>
+            </div>
+        </div>
+
+        <div class="explanation-grid">
+            <div class="exp-card">
+                <h3 style="color: var(--accent-cyan);">1. The App (Frontend)</h3>
+                <p>When you open <code>translate.theaidoc.ai</code> on your phone, Cloudflare securely tunnels your
+                    request directly to the Vite Development Server running silently in the background of your Mac
+                    Studio.</p>
+            </div>
+            <div class="exp-card">
+                <h3 style="color: var(--accent-purple);">2. The Brain (Backend)</h3>
+                <p>When you tap the microphone, it opens a Secure WebSocket to your Mac Studio's FastAPI backend daemon.
+                    Your Mac manages the session, authenticates you via Supabase, and processes the audio.</p>
+            </div>
+            <div class="exp-card">
+                <h3 style="color: var(--accent-green);">3. The AI (Cloud NVIDIA)</h3>
+                <p>Instead of relying on a slow, local GPU server, your Mac Studio sends the text up to NVIDIA's
+                    massively powerful cloud servers (the NIM API) using the API key I recovered. NVIDIA translates it
+                    using Llama 3.3 and beams it instantly back to your phone.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#141517',
+                primaryTextColor: '#F3F4F6',
+                primaryBorderColor: '#2A2B30',
+                lineColor: '#9CA3AF',
+                secondaryColor: '#2A2B30',
+                tertiaryColor: '#141517'
+            },
+            flowchart: {
+                curve: 'basis'
+            }
+        });
+    </script>
+</body>
+
+</html>

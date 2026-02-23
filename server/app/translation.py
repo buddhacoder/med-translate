@@ -40,7 +40,10 @@ class TranslationPipeline:
         self._api_key = None
 
     async def initialize(self):
-        self._api_url = settings.riva_api_url + "/chat/completions"
+        base_url = settings.riva_api_url
+        if base_url and not base_url.startswith("http"):
+            base_url = "https://" + base_url
+        self._api_url = base_url + "/chat/completions"
         self._api_key = settings.riva_api_key
         self._client = httpx.AsyncClient(timeout=30.0)
         logger.info("Translation pipeline initialized (NVIDIA NIM — %s)", self._model)

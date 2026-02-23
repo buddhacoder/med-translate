@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedTranslate Data Flow</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0A0A0B;
+            --surface: #141517;
+            --border: #2A2B30;
+            --text: #F3F4F6;
+            --text-dim: #9CA3AF;
+            --accent-cyan: #22D3EE;
+            --accent-green: #34D399;
+            --accent-purple: #A78BFA;
+            --accent-pink: #F472B6;
+            --accent-orange: #FB923C;
+            --accent-indigo: #818CF8;
+
+            --font-display: 'Outfit', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-display);
+            margin: 0;
+            padding: 3rem 1rem;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 1.2rem;
+            margin: 0;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ── Timeline ── */
+        .timeline {
+            position: relative;
+            padding-left: 3rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--accent-cyan), var(--accent-purple), var(--accent-green), var(--accent-orange));
+            border-radius: 2px;
+        }
+
+        .step {
+            position: relative;
+            margin-bottom: 3rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .step:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .step::before {
+            content: '';
+            position: absolute;
+            left: -3rem;
+            top: 2rem;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 3px solid var(--accent);
+            transform: translateX(-50%);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .step::after {
+            content: '';
+            position: absolute;
+            left: -3rem;
+            top: 2.5rem;
+            width: 3rem;
+            height: 2px;
+            background: var(--accent);
+            opacity: 0.3;
+        }
+
+        /* Step Colors */
+        .step:nth-child(1) {
+            --accent: var(--accent-cyan);
+            --accent-glow: rgba(34, 211, 238, 0.4);
+        }
+
+        .step:nth-child(2) {
+            --accent: var(--accent-indigo);
+            --accent-glow: rgba(129, 140, 248, 0.4);
+        }
+
+        .step:nth-child(3) {
+            --accent: var(--accent-purple);
+            --accent-glow: rgba(167, 139, 250, 0.4);
+        }
+
+        .step:nth-child(4) {
+            --accent: var(--accent-pink);
+            --accent-glow: rgba(244, 114, 182, 0.4);
+        }
+
+        .step:nth-child(5) {
+            --accent: var(--accent-orange);
+            --accent-glow: rgba(251, 146, 60, 0.4);
+        }
+
+        .step:nth-child(6) {
+            --accent: var(--accent-green);
+            --accent-glow: rgba(52, 211, 153, 0.4);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .step-number {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            opacity: 0.8;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--text);
+            line-height: 1.3;
+        }
+
+        .location-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        p {
+            margin: 0 0 1rem 0;
+            color: var(--text-dim);
+        }
+
+        .insight {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--accent);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .insight strong {
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .timeline {
+                padding-left: 2rem;
+            }
+
+            .step::before {
+                left: -2rem;
+            }
+
+            .step::after {
+                width: 2rem;
+                left: -2rem;
+            }
+
+            .step {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>The Journey of a Voice</h1>
+            <p class="subtitle">Step-by-step telemetry of how MedTranslate processes a single sentence across devices
+                and the cloud.</p>
+        </header>
+
+        <div class="timeline">
+
+            <div class="step">
+                <div class="location-badge">📍 Your iPhone/Android Browser</div>
+                <div class="step-header">
+                    <span class="step-number">01</span>
+                    <h2>You open the App</h2>
+                </div>
+                <p>You tap the <code>translate.theaidoc.ai</code> link on your phone. Your phone realizes it needs to
+                    load a website, but instead of going to a normal remote server like Amazon Web Services, it asks
+                    Cloudflare where to go.</p>
+                <div class="insight">
+                    <strong>Why Cloudflare?</strong>
+                    Cloudflare acts as a secure protective shield that hides where your home computer actually is
+                    situated on the internet.
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="location-badge">🚇 Cloudflare Secure Tunnel</div>
+                <div class="step-header">
+                    <span class="step-number">02</span>
+                    <h2>Secure Tunnel to your Mac</h2>
+                </div>
+                <p>Cloudflare funnels the request from the public internet straight into your Mac desktop at home. A
+                    silent daemon installed on your Mac keeps a permanent, invisible tunnel open waiting for your phone.
+                </p>
+            </div>
+
+            <div class="step">
+                <div class="location-badge">🖥️ Your Mac Studio (Vite server)</div>
+                <div class="step-header">
+                    <span class="step-number">03</span>
+                    <h2>Your Mac builds the visual interface</h2>
+                </div>
+                <p>Running on Port 3000, your Mac's Vite Frontend Server responds. It sends all the HTML, CSS (styles),
+                    and JavaScript files through the tunnel right back to your phone, instantly drawing the
+                    glass-morphic app on your screen.</p>
+            </div>
+
+            <div class="step">
+                <div class="location-badge">📍 Your iPhone/Android Microphone</div>
+                <div class="step-header">
+                    <span class="step-number">04</span>
+                    <h2>You hold the Mic button</h2>
+                </div>
+                <p>You hold the microphone button to speak. Your phone uses its built-in browser speech recognition to
+                    transcribe your English voice into English text (e.g., "I am going to be your anesthesiologist
+                    today").</p>
+                <div class="insight">
+                    <strong>The Connection</strong>
+                    The moment you press the mic, your phone instantly slides open a lightning-fast "Secure WebSocket"
+                    connection all the way back to your Mac.
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="location-badge">⚡ Your Mac Studio (FastAPI server)</div>
+                <div class="step-header">
+                    <span class="step-number">05</span>
+                    <h2>Your Mac Studio relays to the Cloud AI</h2>
+                </div>
+                <p>Your phone shoots the English text down the tunnel to your Mac's backend daemon (Port 8443). Rather
+                    than running loud, hot graphics cards directly in your home, your Mac acts as a middleman. It
+                    securely texts NVIDIA's massive Cloud Supercomputers via the NIM API to translate the sentence to
+                    Spanish using Llama 3.3.</p>
+                <div class="insight"
+                    style="background: rgba(239, 68, 68, 0.1); border-left-color: #EF4444; margin-top: 1rem;">
+                    <strong style="color: #EF4444;">⚠️ WHERE THE ERROR OCCURRED</strong>
+                    <p style="color: #F87171; margin-bottom: 0;"><strong>"Translation failed. Please repeat."</strong>
+                    </p>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem; color: #FCA5A5;">The background server on your Mac
+                        couldn't find the configuration file (<code>.env</code>) containing NVIDIA's cloud address
+                        because it was saved in the <code>server/</code> folder instead of the main project folder. So
+                        when it tried to route your translation text, the destination URL was blank, causing it to crash
+                        and return the failure message to your phone.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="location-badge">🧠 NVIDIA Cloud → 🗄️ Supabase → 📍 Your Phone</div>
+                <div class="step-header">
+                    <span class="step-number">06</span>
+                    <h2>NVIDIA translates and returns</h2>
+                </div>
+                <p>NVIDIA's AI finishes the translation in milliseconds ("Voy a ser su anestesiólogo hoy") and beams it
+                    to your Mac. Your Mac saves a quick audit log to your Supabase database in the cloud. Finally, your
+                    Mac shoots the Spanish text back down the tunnel to your phone, which renders the text and speaks it
+                    out loud.</p>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

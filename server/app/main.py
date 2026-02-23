@@ -115,6 +115,46 @@ async def handle_training_upload(
 
 
 
+
+@app.get("/api/train/queue")
+async def get_training_queue():
+    if not settings.supabase_url: return []
+    headers = {"apikey": settings.supabase_service_key, "Authorization": f"Bearer {settings.supabase_service_key}"}
+    url = f"{settings.supabase_url}/rest/v1/voice_contributions?is_approved=is.null&limit=10"
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url, headers=headers)
+        return res.json() if res.status_code == 200 else []
+
+@app.post("/api/train/review")
+async def submit_training_review(record_id: str = Form(...), is_approved: bool = Form(...), pin: str = Form(...)):
+    if not settings.supabase_url: return {"status": "error"}
+    headers = {"apikey": settings.supabase_service_key, "Authorization": f"Bearer {settings.supabase_service_key}", "Content-Type": "application/json"}
+    url = f"{settings.supabase_url}/rest/v1/voice_contributions?id=eq.{record_id}"
+    payload = {"is_approved": is_approved, "reviewed_by": pin}
+    async with httpx.AsyncClient() as client:
+        res = await client.patch(url, headers=headers, json=payload)
+        res.raise_for_status()
+    return {"status": "success"}
+
+@app.get("/api/phrases/custom")
+async def get_custom_phrases(pin: str):
+    if not settings.supabase_url: return []
+    headers = {"apikey": settings.supabase_service_key, "Authorization": f"Bearer {settings.supabase_service_key}"}
+    url = f"{settings.supabase_url}/rest/v1/custom_phrases?provider_pin=eq.{pin}&order=created_at.desc"
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url, headers=headers)
+        return res.json() if res.status_code == 200 else []
+
+@app.post("/api/phrases/custom")
+async def add_custom_phrase(pin: str = Form(...), phrase: str = Form(...)):
+    if not settings.supabase_url: return {"status": "error"}
+    headers = {"apikey": settings.supabase_service_key, "Authorization": f"Bearer {settings.supabase_service_key}", "Content-Type": "application/json", "Prefer": "return=minimal"}
+    url = f"{settings.supabase_url}/rest/v1/custom_phrases"
+    payload = {"provider_pin": pin, "phrase_text": phrase, "category": "Custom"}
+    async with httpx.AsyncClient() as client:
+        res = await client.post(url, headers=headers, json=payload)
+        res.raise_for_status()
+    return {"status": "success"}
 @app.websocket("/ws")
 async def translation_session(ws: WebSocket):
     """

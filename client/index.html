@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0a0e1a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -11,39 +13,140 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
-  <link rel="stylesheet" href="/styles/app.css">
+  <link rel="stylesheet" href="/styles/app.css?direct">
 
   <style>
     /* Critical UI Overrides */
-    .lang-carousel { display: flex; overflow-x: auto; gap: 1.5rem; padding: 1rem 0; margin-bottom: 2rem; scrollbar-width: none; }
-    .lang-carousel::-webkit-scrollbar { display: none; }
-    .lang-flag-card { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; flex: 0 0 auto; cursor: pointer; opacity: 0.5; transition: all 0.3s; transform: scale(0.9); }
-    .lang-flag-card.selected { opacity: 1; transform: scale(1.05); }
-    .flag-circle { width: 64px; height: 64px; border-radius: 50%; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.4); border: 2px solid transparent; background: #1a2235; display: flex; align-items: center; justify-content: center; }
-    .lang-flag-card.selected .flag-circle { border-color: #00f0ff; box-shadow: 0 0 20px rgba(0,240,255,0.4), inset 0 0 10px rgba(0,240,255,0.2); }
-    .flag-circle img { width: 130%; height: 130%; object-fit: cover; }
-    .lang-flag-card .lang-name { font-size: 0.85rem; font-weight: 500; color: #8da4c0; }
-    .lang-flag-card.selected .lang-name { color: #ffffff; font-weight: 600; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
-    .presets-container { margin: 1rem 0; position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; }
-    .btn-preset-toggle { background: rgba(10,14,26,0.6); border: 1px solid rgba(82,153,224,0.2); color: #8da4c0; padding: 0.6rem 1.2rem; border-radius: 20px; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; backdrop-filter: blur(10px); }
-    .btn-preset-toggle.active { background: rgba(82,153,224,0.15); color: #fff; }
-    .presets-menu { position: absolute; top: 100%; margin-top: 0.5rem; background: rgba(15,20,35,0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; width: 90vw; max-width: 400px; max-height: 50vh; overflow-y: auto; padding: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-    .preset-item { background: rgba(255,255,255,0.03); border: 1px solid transparent; padding: 1rem; border-radius: 12px; color: #fff; text-align: left; font-size: 0.95rem; }
-  
-    .donate-btn { position: absolute; top: 1rem; right: 1rem; background: rgba(255,105,180,0.15); color: #ff69b4; border: 1px solid rgba(255,105,180,0.3); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 0.4rem; backdrop-filter: blur(10px); z-index: 100; transition: all 0.3s; }
-    .donate-btn:hover { background: rgba(255,105,180,0.3); transform: scale(1.05); }
-    .specialty-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.5rem; }
-    .specialty-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(82,153,224,0.2); padding: 1.5rem 1rem; border-radius: 16px; color: #8da4c0; text-align: center; cursor: pointer; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
-    .specialty-card.selected { background: rgba(82,153,224,0.15); border-color: #00f0ff; color: #fff; transform: scale(1.05); box-shadow: 0 0 20px rgba(0,240,255,0.2); }
-    .specialty-card svg { stroke: currentColor; opacity: 0.8; }
-    .preset-category-title { color: #5299e0; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 1rem 0 0.5rem 0.5rem; align-self: flex-start; }
-</style>
+    .lang-carousel {
+      display: flex;
+      overflow-x: auto;
+      gap: 1.5rem;
+      padding: 1rem 0;
+      margin-bottom: 2rem;
+      scrollbar-width: none;
+    }
+
+    .lang-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .lang-flag-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 0 0 auto;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: all 0.3s;
+      transform: scale(0.9);
+    }
+
+    .lang-flag-card.selected {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+
+    .flag-circle {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      border: 2px solid transparent;
+      background: #1a2235;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lang-flag-card.selected .flag-circle {
+      border-color: #00f0ff;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4), inset 0 0 10px rgba(0, 240, 255, 0.2);
+    }
+
+    .flag-circle img {
+      width: 130%;
+      height: 130%;
+      object-fit: cover;
+    }
+
+    .lang-flag-card .lang-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #8da4c0;
+    }
+
+    .lang-flag-card.selected .lang-name {
+      color: #ffffff;
+      font-weight: 600;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    }
+
+    .preset-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid transparent;
+      padding: 1rem;
+      border-radius: 12px;
+      color: #fff;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+
+    .specialty-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .specialty-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(82, 153, 224, 0.2);
+      padding: 1.5rem 1rem;
+      border-radius: 16px;
+      color: #8da4c0;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .specialty-card.selected {
+      background: rgba(82, 153, 224, 0.15);
+      border-color: #00f0ff;
+      color: #fff;
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+    }
+
+    .specialty-card svg {
+      stroke: currentColor;
+      opacity: 0.8;
+    }
+
+    .preset-category-title {
+      color: #5299e0;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 1rem 0 0.5rem 0.5rem;
+      align-self: flex-start;
+    }
+  </style>
 </head>
 
 <body>
   <div id="app">
     <a href="https://buy.stripe.com/test_donation" target="_blank" class="donate-btn">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+        <path
+          d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+      </svg>
       Support
     </a>
 
@@ -51,7 +154,15 @@
     <div id="login-screen" class="screen">
       <div class="logo animate-slide-up">
         <div class="logo-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v4"/><path d="M14 14h-4"/><path d="M14 18h-4"/><path d="M14 8h-4"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h2"/><path d="M18 2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 6v4" />
+            <path d="M14 14h-4" />
+            <path d="M14 18h-4" />
+            <path d="M14 8h-4" />
+            <path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h2" />
+            <path d="M18 2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z" />
+          </svg>
         </div>
         <h1>MedTranslate</h1>
         <p class="subtitle">HIPAA-Compliant Medical Translation</p>
@@ -59,27 +170,37 @@
       <div class="card animate-slide-up-delay-1">
         <div class="card-title">Staff PIN</div>
         <div class="pin-container" id="pin-container">
-          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-index="0" autocomplete="off" aria-label="PIN digit 1">
-          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-index="1" autocomplete="off" aria-label="PIN digit 2">
-          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-index="2" autocomplete="off" aria-label="PIN digit 3">
-          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-index="3" autocomplete="off" aria-label="PIN digit 4">
-          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-index="4" autocomplete="off" aria-label="PIN digit 5">
-          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-index="5" autocomplete="off" aria-label="PIN digit 6">
+          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-index="0" autocomplete="off"
+            aria-label="PIN digit 1">
+          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-index="1" autocomplete="off"
+            aria-label="PIN digit 2">
+          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-index="2" autocomplete="off"
+            aria-label="PIN digit 3">
+          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-index="3" autocomplete="off"
+            aria-label="PIN digit 4">
+          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-index="4" autocomplete="off"
+            aria-label="PIN digit 5">
+          <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" data-index="5" autocomplete="off"
+            aria-label="PIN digit 6">
         </div>
         <button id="login-btn" class="btn btn-primary" disabled><span>Sign In</span></button>
       </div>
       <div class="security-badge animate-slide-up-delay-2">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
         <span>End-to-end encrypted</span>
       </div>
     </div>
 
-    
+
     <!-- SCREEN 1.5: Specialty Select -->
     <div id="specialty-screen" class="screen setup-screen hidden">
       <div class="logo animate-slide-up">
         <div class="logo-icon logo-icon-lang">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+          </svg>
         </div>
         <h1>Your Specialty</h1>
         <p class="subtitle">Customize your clinical phrases</p>
@@ -87,23 +208,40 @@
       <div class="card animate-slide-up-delay-1" style="width: 100%;">
         <div class="specialty-grid" id="specialty-grid">
           <div class="specialty-card" data-specialty="anesthesia" tabindex="0" role="button">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="6.5"/></svg>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z" />
+              <line x1="16" y1="8" x2="2" y2="22" />
+              <line x1="17.5" y1="15" x2="9" y2="6.5" />
+            </svg>
             <span style="font-weight: 500; font-size: 0.95rem;">Anesthesia</span>
           </div>
           <div class="specialty-card" data-specialty="er" tabindex="0" role="button">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+            </svg>
             <span style="font-weight: 500; font-size: 0.95rem;">Emergency (ER)</span>
           </div>
           <div class="specialty-card" data-specialty="pediatrics" tabindex="0" role="button">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="5" r="3"/><path d="M7 22v-6a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v6"/><path d="M12 9v4"/><line x1="9" y1="13" x2="15" y2="13"/></svg>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <circle cx="12" cy="5" r="3" />
+              <path d="M7 22v-6a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v6" />
+              <path d="M12 9v4" />
+              <line x1="9" y1="13" x2="15" y2="13" />
+            </svg>
             <span style="font-weight: 500; font-size: 0.95rem;">Pediatrics</span>
           </div>
           <div class="specialty-card" data-specialty="general" tabindex="0" role="button">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15h6"/></svg>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <path d="M14 2v6h6" />
+              <path d="M12 18v-6" />
+              <path d="M9 15h6" />
+            </svg>
             <span style="font-weight: 500; font-size: 0.95rem;">General Med</span>
           </div>
         </div>
-        <button id="confirm-specialty-btn" class="btn btn-primary" style="margin-top: 1.5rem;" disabled><span>Continue</span></button>
+        <button id="confirm-specialty-btn" class="btn btn-primary" style="margin-top: 1.5rem;"
+          disabled><span>Continue</span></button>
       </div>
     </div>
 
@@ -111,10 +249,17 @@
     <div id="setup-screen" class="screen setup-screen hidden">
       <div class="logo animate-slide-up">
         <div class="logo-icon logo-icon-lang">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        </div><h1>Select Language</h1>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="2" y1="12" x2="22" y2="12" />
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+        </div>
+        <h1>Select Language</h1>
         <p class="subtitle">Choose the patient's primary language</p>
-        <button id="train-mode-toggle" class="btn" style="display: none; background: rgba(82,153,224,0.15); color: #8da4c0; padding: 0.4rem 1rem; border-radius: 12px; margin-top: 0.8rem; font-size: 0.85rem; border: 1px solid rgba(82,153,224,0.3); backdrop-filter: blur(10px); cursor: pointer;">Contribute to Voice Model 🎙️</button>
+
+
       </div>
       <div class="card animate-slide-up-delay-1">
         <div class="lang-carousel" id="language-grid">
@@ -164,17 +309,27 @@
         <div class="language-badge">Training Mode</div>
         <button class="end-btn" id="exit-training-btn">Exit</button>
       </div>
-      
+
       <div class="card animate-slide-up-delay-1" style="margin-top: 2rem; text-align: center;">
-        <h2 style="color: #fff; margin-bottom: 0.5rem; font-size: 1.2rem;">Read Aloud in <span id="training-target-lang">Creole</span></h2>
-        <p style="color: #8da4c0; font-size: 0.9rem; margin-bottom: 1.5rem;">Press and hold the microphone to record your translation.</p>
-        
-        <div style="background: rgba(10,14,26,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; min-height: 100px; display: flex; align-items: center; justify-content: center;">
-          <h3 id="training-phrase-text" style="color: #00f0ff; font-size: 1.3rem; font-weight: 500; line-height: 1.4;">"I will perform a physical exam now."</h3>
+        <h2 style="color: #fff; margin-bottom: 0.5rem; font-size: 1.2rem;">Read Aloud in <span
+            id="training-target-lang">Creole</span></h2>
+        <p style="color: #8da4c0; font-size: 0.9rem; margin-bottom: 1.5rem;">Press and hold the microphone to record
+          your translation.</p>
+
+        <div
+          style="background: rgba(10,14,26,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; min-height: 100px; display: flex; align-items: center; justify-content: center;">
+          <h3 id="training-phrase-text" style="color: #00f0ff; font-size: 1.3rem; font-weight: 500; line-height: 1.4;">
+            "I will perform a physical exam now."</h3>
         </div>
 
-        <button id="training-record-btn" class="btn-mic" style="margin: 0 auto; width: 80px; height: 80px; border-radius: 50%; background: #2a354d; border: 2px solid #5299e0; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+        <button id="training-record-btn" class="btn-mic"
+          style="margin: 0 auto; width: 80px; height: 80px; border-radius: 50%; background: #2a354d; border: 2px solid #5299e0; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+            <line x1="12" y1="19" x2="12" y2="22" />
+            <line x1="8" y1="22" x2="16" y2="22" />
+          </svg>
         </button>
         <p id="training-status-text" style="color: #8da4c0; margin-top: 1rem; font-size: 0.85rem;">Hold to record</p>
       </div>
@@ -189,7 +344,9 @@
         </div>
         <div class="language-badge" id="active-language">
           <span id="active-from">EN</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
           <span id="active-to">ES</span>
         </div>
         <button class="end-btn" id="end-session-btn">End</button>
@@ -207,15 +364,40 @@
       <!-- Quick Presets -->
       <div class="presets-container">
         <button id="presets-toggle-btn" class="btn-preset-toggle">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
           Quick Phrases
         </button>
         <div id="presets-menu" class="presets-menu hidden">
-          <button class="preset-item" data-text="I am going to perform a physical exam now. I will listen to your heart and lungs.">Physical Exam</button>
-          <button class="preset-item" data-text="You are scheduled for an endoscopy. You must not eat or drink anything after midnight.">Endoscopy Prep</button>
-          <button class="preset-item" data-text="Your lab results came back normal. There is no sign of infection.">Labs Normal</button>
-          <button class="preset-item" data-text="Are you currently experiencing any pain? Can you point to where it hurts?">Pain Assessment</button>
-          <button class="preset-item" data-text="I will prescribe a medication. Please take it exactly as directed on the label.">Prescription Instruction</button>
+          <div class="preset-category-title">Automated Workflows</div>
+          <button class="preset-item" id="start-interview-btn"
+            style="border-color: var(--accent); background: rgba(6,214,160,0.1);">
+            <div style="display:flex; align-items:center; gap: 0.5rem; color: #00f0ff;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <strong>Start Interview Flow</strong>
+            </div>
+            <div style="font-size: 0.8rem; color: #8da4c0; margin-top: 0.2rem;">Automated 4-question intake</div>
+          </button>
+
+          <div class="preset-category-title" style="margin-top:0.5rem">Quick Phrases</div>
+          <button class="preset-item"
+            data-text="I am going to perform a physical exam now. I will listen to your heart and lungs.">Physical
+            Exam</button>
+          <button class="preset-item"
+            data-text="You are scheduled for an endoscopy. You must not eat or drink anything after midnight.">Endoscopy
+            Prep</button>
+          <button class="preset-item" data-text="Your lab results came back normal. There is no sign of infection.">Labs
+            Normal</button>
+          <button class="preset-item"
+            data-text="Are you currently experiencing any pain? Can you point to where it hurts?">Pain
+            Assessment</button>
+          <button class="preset-item"
+            data-text="I will prescribe a medication. Please take it exactly as directed on the label.">Prescription
+            Instruction</button>
         </div>
       </div>
 
@@ -227,7 +409,10 @@
         </div>
         <div class="transcript-divider">
           <div class="divider-line"></div>
-          <svg class="divider-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg class="divider-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
           <div class="divider-line"></div>
         </div>
         <div class="transcript-bubble translation-bubble" id="translated-transcript">
@@ -238,26 +423,66 @@
 
       <!-- Hidden compat elements -->
       <canvas id="waveform-canvas" style="display:none"></canvas>
-      <div style="display:none"><div id="volume-bar"></div></div>
+      <div style="display:none">
+        <div id="volume-bar"></div>
+      </div>
 
       <!-- Slidable mic dock -->
       <div class="mic-dock">
+        <!-- New Interview Flow Controls -->
+        <div id="interview-controls" class="hidden"
+          style="display:flex; width: 100%; max-width: 320px; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <button class="btn" id="interview-next-btn"
+            style="flex:2; background: rgba(6,214,160,0.2); border: 1px solid var(--accent); color: var(--accent);">Next
+            Question</button>
+          <button class="btn" id="interview-skip-btn"
+            style="flex:1; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #ef4444;">End
+            Flow</button>
+        </div>
+
         <div class="slider-track" id="slider-track">
           <div class="slider-label slider-label-left" id="slider-label-left">
             <span class="slider-lang">ES</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
             <span class="slider-lang">EN</span>
           </div>
           <div class="slider-label slider-label-right" id="slider-label-right">
             <span class="slider-lang">EN</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
             <span class="slider-lang">ES</span>
           </div>
           <div class="slider-thumb" id="mic-toggle" aria-label="Slide to set direction, hold to record">
-            <svg class="mic-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            <svg class="mic-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="23" />
+              <line x1="8" y1="23" x2="16" y2="23" />
+            </svg>
           </div>
         </div>
         <div class="slider-hint" id="slider-hint">Slide to set direction, hold to speak</div>
+      </div>
+    </div>
+
+    <!-- SCREEN 5: Interview Summary Modal -->
+    <div id="summary-screen" class="screen hidden"
+      style="z-index: 200; background: rgba(6,8,15,0.95); position: fixed; inset: 0;">
+      <div class="card animate-slide-up" style="max-height: 80vh; display: flex; flex-direction: column;">
+        <h2 style="color: #fff; margin-bottom: 0.5rem;">Interview Summary</h2>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Translated responses from the
+          patient</p>
+
+        <div id="summary-content"
+          style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+          <!-- Dynamically populated -->
+        </div>
+
+        <button id="close-summary-btn" class="btn btn-primary">Close</button>
       </div>
     </div>
 
@@ -265,4 +490,5 @@
   <div class="toast" id="toast" role="alert" aria-live="polite"></div>
   <script type="module" src="/js/app.js"></script>
 </body>
+
 </html>
