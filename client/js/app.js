@@ -5,7 +5,7 @@
  */
 
 var CONFIG = {
-  WS_URL: 'wss://' + location.host + '/ws',
+  WS_URL: 'wss://med-translate-production.up.railway.app/ws',
   RECONNECT_MAX: 5,
   RECONNECT_DELAY: 2000
 };
@@ -45,12 +45,34 @@ var state = {
   interview: { active: false, stepIndex: 0, answers: [] }
 };
 
-var INTERVIEW_QUESTIONS = [
-  "Are you currently experiencing any pain?",
-  "Can you point to where it hurts?",
-  "When did the pain start?",
-  "Are you taking any medications right now?"
-];
+var INTERVIEW_FLOWS = {
+  preop: [
+    "Are you having any pain right now?",
+    "When was the last time you had anything to eat or drink?",
+    "Do you have any allergies to medications?",
+    "Do you have any problems with your heart or lungs?",
+    "Have you or anyone in your family had problems with anesthesia?"
+  ],
+  induction: [
+    "I'm going to place this oxygen mask on your face.",
+    "Please take deep, slow breaths of the oxygen.",
+    "You will feel a little burn in your IV as the medicine goes in.",
+    "Think of a happy place as you fall asleep."
+  ],
+  postop: [
+    "The surgery is all done and everything went well.",
+    "You are in the recovery room. Are you having any pain?",
+    "Take deep breaths and try to open your eyes.",
+    "Do you feel sick to your stomach or nauseous?"
+  ],
+  pain: [
+    "Are you currently experiencing any pain?",
+    "Can you point to exactly where it hurts?",
+    "On a scale of 0 to 10, with 10 being the worst pain, what is your pain level?",
+    "Is the pain sharp, dull, throbbing, or aching?"
+  ]
+};
+var INTERVIEW_QUESTIONS = INTERVIEW_FLOWS.preop;
 
 var loginScreen, specialtyScreen, setupScreen, validationScreen, sessionScreen, pinDigits, loginBtn;
 var langCards, startBtn, specialtyCards, confirmSpecialtyBtn;
@@ -229,9 +251,12 @@ async function startSession() {
     setStatus('ready');
     snapSlider('left');
     updateDynamicUI();
-    sessionTimer.textContent = '0:00';
+    updateInterviewButtonLabels();
     sessionTimer.textContent = '0:00';
     showToast('Connected! Slide mic & hold to talk', 'success');
+    // Reset button for next use
+    startBtn.innerHTML = '<span>Start Session</span>';
+    startBtn.disabled = false;
   } catch (err) {
     showToast('Failed: ' + err.message);
     startBtn.innerHTML = '<span>Start Session</span>';
@@ -349,60 +374,50 @@ const INSTRUCTIONS = {
 };
 
 const PRESET_TRANSLATIONS = {
-  "Physical Exam": {
-    en: "I am going to perform a physical exam now. I will listen to your heart and lungs.",
-    es: "Voy a realizar un examen físico ahora. Voy a escuchar su corazón y pulmones.",
-    ht: "Mwen pral fè yon egzamen fizik kounye a. Mwen pral koute kè ou ak poumon ou.",
-    pt: "Vou fazer um exame físico agora. Vou ouvir seu coração e pulmões.",
-    ru: "Сейчас я проведу медицинский осмотр. Я послушаю ваше сердце и легкие.",
-    zh: "我现在要进行体检。我将听您的心脏和肺部。",
-    ar: "سأقوم بإجراء فحص بدني الآن. سأستمع إلى قلبك ورئتيك.",
-    vi: "Tôi sẽ thực hiện khám sức khỏe bây giờ. Tôi sẽ nghe tim và phổi của bạn.",
-    tl: "Magsasagawa ako ng pisikal na pagsusuri ngayon. Pakinggan ko ang iyong puso at baga."
+  "Allergies?": {
+    en: "Do you have any allergies to medications?",
+    es: "¿Tiene alguna alergia a medicamentos?",
+    ht: "Èske ou gen nenpòt alèji ak medikaman?",
   },
-  "Endoscopy Prep": {
-    en: "You are scheduled for an endoscopy. You must not eat or drink anything after midnight.",
-    es: "Está programado para una endoscopia. No debe comer ni beber nada después de la medianoche.",
-    ht: "Ou pwograme pou yon andoskopi. Ou pa dwe manje ni bwè anyen apre minwi.",
-    pt: "Você tem uma endoscopia agendada. Não deve comer ou beber nada após a meia-noite.",
-    ru: "Вам назначена эндоскопия. Вы не должны ничего есть или пить после полуночи.",
-    zh: "您预定了内窥镜检查。午夜后不得吃喝任何东西。",
-    ar: "لديك موعد لتنظير داخلي. يجب ألا تأكل أو تشرب أي شيء بعد منتصف الليل.",
-    vi: "Bạn đã được đặt lịch cho nội soi. Bạn không được ăn hoặc uống bất cứ thứ gì sau nửa đêm.",
-    tl: "Naka-iskedyul ka para sa isang endoscopy. Bawal kang kumain o uminom ng kahit ano pagkatapos ng hatinggabi."
+  "Last Meal?": {
+    en: "When was the last time you had anything to eat or drink?",
+    es: "¿Cuándo fue la última vez que comió o bebió algo?",
+    ht: "Kilè se dènye fwa ou te manje oswa bwè anyen?",
   },
-  "Labs Normal": {
-    en: "Your lab results came back normal. There is no sign of infection.",
-    es: "Los resultados de su laboratorio regresaron normales. No hay signo de infección.",
-    ht: "Rezilta laboratwa ou yo tounen nòmal. Pa gen okenn siy enfeksyon.",
-    pt: "Seus resultados de laboratório voltaram normais. Não há sinal de infecção.",
-    ru: "Результаты ваших анализов в норме. Нет никаких признаков инфекции.",
-    zh: "您的实验室结果正常。没有感染的迹象。",
-    ar: "عادت نتائج مختبرك طبيعية. لا توجد علامة على وجود عدوى.",
-    vi: "Kết quả xét nghiệm của bạn bình thường. Không có dấu hiệu nhiễm trùng.",
-    tl: "Normal ang resulta ng lab mo. Walang senyales ng impeksyon."
+  "Chest Pain?": {
+    en: "Are you currently experiencing any chest pain or shortness of breath?",
+    es: "¿Está experimentando actualmente algún dolor de pecho o falta de aire?",
+    ht: "Èske w ap fè eksperyans nenpòt doulè nan pwatrin oswa souf kout kounye a?",
   },
-  "Pain Assessment": {
-    en: "Are you currently experiencing any pain? Can you point to where it hurts?",
-    es: "¿Está experimentando algún dolor actualmente? ¿Puede señalar dónde le duele?",
-    ht: "Èske w ap fè eksperyans nenpòt doulè kounye a? Èske ou ka montre kote li fè mal?",
-    pt: "Você está sentindo alguma dor atualmente? Pode apontar onde dói?",
-    ru: "Вы в настоящее время испытываете какую-либо боль? Можете ли вы указать, где болит?",
-    zh: "您目前感觉到疼痛吗？能指出哪里痛吗？",
-    ar: "هل تعاني من أي ألم حاليا؟ هل يمكنك الإشارة إلى المكان الذي يؤلمك؟",
-    vi: "Bạn hiện có đang đau ở đâu không? Bạn có thể chỉ vào chỗ đau được không?",
-    tl: "Nakakaranas ka ba ng anumang sakit ngayon? Maaari mo bang ituro kung saan masakit?"
+  "Medical History?": {
+    en: "Do you have any chronic medical problems like high blood pressure, diabetes, asthma, seizures, or stroke?",
+    es: "¿Tiene problemas médicos crónicos como presión alta, diabetes, asma, convulsiones o derrames cerebrales?",
+    ht: "Èske ou gen pwoblèm medikal tankou tansyon wo, dyabèt, opresyon, kriz, oswa konjesyon?",
   },
-  "Prescription Instruction": {
-    en: "I will prescribe a medication. Please take it exactly as directed on the label.",
-    es: "Le recetaré un medicamento. Por favor, tómelo exactamente como se indica en la etiqueta.",
-    ht: "Mwen pral preskri yon medikaman. Tanpri pran li egzakteman jan yo mande sou etikèt la.",
-    pt: "Vou prescrever um medicamento. Por favor, tome exatamente como indicado no rótulo.",
-    ru: "Я выпишу лекарство. Пожалуйста, принимайте его точно так, как указано на этикетке.",
-    zh: "我将开一个处方药。请严格按照标签上的说明服用。",
-    ar: "سأصف لك دواء. يرجى تناوله تمامًا كما هو موضح على الملصق.",
-    vi: "Tôi sẽ kê đơn thuốc. Vui lòng uống chính xác như hướng dẫn trên nhãn.",
-    tl: "Magrameta ako ng gamot. Mangyaring inumin ito nang eksakto tulad ng itinuro sa label."
+  "Anesthesia Issues?": {
+    en: "Have you or anyone in your family ever had problems with anesthesia?",
+    es: "¿Alguien en su familia o usted ha tenido problemas con la anestesia alguna vez?",
+    ht: "Èske ou oswa nenpòt moun nan fanmi ou te gen pwoblèm ak anestezi?",
+  },
+  "Blood Thinners?": {
+    en: "Are you currently taking any blood thinners?",
+    es: "¿Está tomando actualmente anticoagulantes (diluyentes de la sangre)?",
+    ht: "Èske w ap pran okenn medikaman pou fè san an pi klè kounye a?",
+  },
+  "Implants/Dentures?": {
+    en: "Do you have any loose teeth, dentures, or metal implants?",
+    es: "¿Tiene dientes flojos, dentaduras postizas o implantes metálicos?",
+    ht: "Èske w gen dan k ap jwe, dan atifisyèl, oswa nenpòt metal nan kò w?",
+  },
+  "Smoke/Drink?": {
+    en: "Do you smoke, drink alcohol, or use any recreational drugs?",
+    es: "¿Fuma, bebe alcohol o usa drogas recreativas?",
+    ht: "Èske w fimen, bwè alkòl, oswa sèvi ak dwòg tanzantan?",
+  },
+  "Pain?": {
+    en: "Are you experiencing any pain right now? Can you point to where it hurts?",
+    es: "¿Está experimentando algún dolor en este momento? ¿Puede señalar dónde le duele?",
+    ht: "Èske w gen nenpòt doulè kounye a? Èske w ka montre kote l fè w mal la?",
   }
 };
 
@@ -422,14 +437,9 @@ function updateDynamicUI() {
     // Only target the Quick Phrases, ignore Interview flow preset
     if (item.id === 'start-interview-btn') return;
 
-    // Convert DOM nodes into inner text content to match keys
     const rawHTML = item.innerHTML.trim();
-    // Re-extract the key title (removing the line breaks and spaces)
-    let key = "Physical Exam";
-    if (rawHTML.includes("Endoscopy")) key = "Endoscopy Prep";
-    else if (rawHTML.includes("Labs")) key = "Labs Normal";
-    else if (rawHTML.includes("Pain")) key = "Pain Assessment";
-    else if (rawHTML.includes("Prescription")) key = "Prescription Instruction";
+    const key = rawHTML.replace(/<[^>]*>?/gm, '').trim();
+
 
     const localMatrix = PRESET_TRANSLATIONS[key];
     if (localMatrix) {
@@ -801,7 +811,9 @@ function playFishAudio(text, lang) {
 
 /* ── Interview Flow ── */
 function initInterviewFlow() {
-  if (startInterviewBtn) startInterviewBtn.addEventListener('click', startInterviewFlow);
+  document.querySelectorAll('.preset-workflow-btn').forEach(btn => {
+    btn.addEventListener('click', startInterviewFlow);
+  });
   if (interviewNextBtn) interviewNextBtn.addEventListener('click', advanceInterview);
   if (interviewSkipBtn) interviewSkipBtn.addEventListener('click', endInterview);
   if (closeSummaryBtn) closeSummaryBtn.addEventListener('click', function () {
@@ -809,7 +821,10 @@ function initInterviewFlow() {
   });
 }
 
-function startInterviewFlow() {
+function startInterviewFlow(e) {
+  const flowKey = e ? (e.currentTarget.getAttribute('data-flow') || 'preop') : 'preop';
+  INTERVIEW_QUESTIONS = INTERVIEW_FLOWS[flowKey] || INTERVIEW_FLOWS.preop;
+
   state.interview.active = true;
   state.interview.stepIndex = -1;
   state.interview.answers = [];
@@ -817,6 +832,8 @@ function startInterviewFlow() {
   document.getElementById('presets-menu').classList.add('hidden');
   document.getElementById('presets-toggle-btn').classList.remove('active');
   interviewControls.classList.remove('hidden');
+  interviewControls.style.display = 'flex';
+  updateInterviewButtonLabels();
 
   advanceInterview();
 }
@@ -835,6 +852,35 @@ function advanceInterview() {
   // Doctor -> Patient (Force left side)
   snapSlider('left');
   sendForTranslation(question);
+}
+
+/* Bilingual interview button labels */
+var INTERVIEW_LABELS = {
+  next: {
+    en: 'Next Question', es: 'Siguiente Pregunta', ht: 'Kestyon Swivan',
+    fr: 'Question Suivante', pt: 'Próxima Pergunta', ru: 'Следующий Вопрос',
+    zh: '下一个问题', ar: 'السؤال التالي', vi: 'Câu Hỏi Tiếp', tl: 'Susunod na Tanong'
+  },
+  end: {
+    en: 'End Flow', es: 'Terminar', ht: 'Fini',
+    fr: 'Terminer', pt: 'Encerrar', ru: 'Завершить',
+    zh: '结束', ar: 'إنهاء', vi: 'Kết Thúc', tl: 'Tapusin'
+  }
+};
+
+function updateInterviewButtonLabels() {
+  var lang = state.selectedLang || 'es';
+  var nextEN = INTERVIEW_LABELS.next.en;
+  var nextLocal = INTERVIEW_LABELS.next[lang] || nextEN;
+  var endEN = INTERVIEW_LABELS.end.en;
+  var endLocal = INTERVIEW_LABELS.end[lang] || endEN;
+
+  if (interviewNextBtn) {
+    interviewNextBtn.innerHTML = nextEN === nextLocal ? nextEN : nextEN + ' / ' + nextLocal;
+  }
+  if (interviewSkipBtn) {
+    interviewSkipBtn.innerHTML = endEN === endLocal ? endEN : endEN + ' / ' + endLocal;
+  }
 }
 
 function endInterview() {
@@ -881,6 +927,29 @@ async function registerSW() {
   }
 }
 
+function initManualInput() {
+  const manualInput = document.getElementById('manual-text-input');
+  const manualSendBtn = document.getElementById('manual-text-send-btn');
+
+  if (manualInput && manualSendBtn) {
+    function sendManual() {
+      const text = manualInput.value.trim();
+      if (text && state.session.active) {
+        // Assume user speaks in matching source language (doctor typing english)
+        snapSlider('left');
+        originalText.textContent = text;
+        sendForTranslation(text);
+        manualInput.value = '';
+        manualInput.blur();
+      }
+    }
+    manualSendBtn.addEventListener('click', sendManual);
+    manualInput.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') sendManual();
+    });
+  }
+}
+
 function init() {
   cacheDom();
   initPinInput();
@@ -889,8 +958,10 @@ function init() {
   initSessionControls();
   initPresetsMenu();
   initInterviewFlow();
+  initManualInput();
   registerSW();
-  if (pinDigits[0]) pinDigits[0].focus();
+  // Skip PIN for testing — go straight to specialty select
+  showScreen('specialty');
 }
 
 function initPresetsMenu() {
@@ -898,6 +969,15 @@ function initPresetsMenu() {
   const presetsMenu = document.getElementById('presets-menu');
 
   if (toggleBtn && presetsMenu) {
+    const closeBtn = document.getElementById('presets-close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        presetsMenu.classList.add('hidden');
+        toggleBtn.classList.remove('active');
+      });
+    }
+
     toggleBtn.addEventListener('click', function () {
       const isHidden = presetsMenu.classList.contains('hidden');
       if (isHidden) {
@@ -923,6 +1003,17 @@ function initPresetsMenu() {
           toggleBtn.classList.remove('active');
         }
       });
+    });
+
+    // Dismiss presets menu when tapping outside
+    document.addEventListener('click', function (e) {
+      if (!presetsMenu.classList.contains('hidden')) {
+        var container = document.querySelector('.presets-container');
+        if (container && !container.contains(e.target)) {
+          presetsMenu.classList.add('hidden');
+          toggleBtn.classList.remove('active');
+        }
+      }
     });
   }
 }
