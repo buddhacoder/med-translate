@@ -13,6 +13,13 @@ var CONFIG = {
 var LANGUAGES = {
   es: { name: 'Spanish', speechCode: 'es-ES' },
   ht: { name: 'Haitian Creole', speechCode: 'ht' },
+  fr: { name: 'French', speechCode: 'fr-FR' },
+  pt: { name: 'Portuguese', speechCode: 'pt-BR' },
+  ru: { name: 'Russian', speechCode: 'ru-RU' },
+  zh: { name: 'Mandarin', speechCode: 'zh-CN' },
+  ar: { name: 'Arabic', speechCode: 'ar-SA' },
+  vi: { name: 'Vietnamese', speechCode: 'vi-VN' },
+  tl: { name: 'Tagalog', speechCode: 'tl-PH' },
   en: { name: 'English', speechCode: 'en-US' }
 };
 
@@ -100,17 +107,24 @@ function showScreen(name) {
   if (validationScreen) validationScreen.classList.toggle('hidden', name !== 'validation');
   if (sessionScreen) sessionScreen.classList.toggle('hidden', name !== 'session');
 
-  const donateBtn = document.querySelector('.donate-btn');
-  if (donateBtn) {
-    donateBtn.style.display = (name === 'session') ? 'none' : '';
+  // Push natively into the device history stack to intercept back swipes
+  if (window.history.state?.screen !== name) {
+    window.history.pushState({ screen: name }, '', '#' + name);
   }
 }
 
+// Intercept native device back-swipe to route backward instead of quitting
+window.addEventListener('popstate', function (e) {
+  if (e.state && e.state.screen) {
+    showScreen(e.state.screen);
+  } else {
+    showScreen('login');
+  }
+});
+
 function showToast(message, type) {
-  if (!type) type = 'error';
-  toastEl.textContent = message;
-  toastEl.className = 'toast ' + type + ' show';
-  setTimeout(function () { toastEl.classList.remove('show'); }, 3500);
+  // Toast notifications disabled per user request to improve UX
+  console.log("Toast (disabled):", message);
 }
 
 /* ── PIN ── */
@@ -213,10 +227,9 @@ async function startSession() {
     await connectWebSocket();
     showScreen('session');
     setStatus('ready');
-    // Snap slider to left by default
     snapSlider('left');
-    originalText.textContent = 'Slide mic & hold to speak';
-    translatedText.textContent = '\u2014';
+    updateDynamicUI();
+    sessionTimer.textContent = '0:00';
     sessionTimer.textContent = '0:00';
     showToast('Connected! Slide mic & hold to talk', 'success');
   } catch (err) {
@@ -320,6 +333,110 @@ function snapSlider(side) {
   } else {
     sliderHint.textContent = target + ' \u2192 EN  \u00b7  Hold to speak';
   }
+  updateDynamicUI();
+}
+
+const INSTRUCTIONS = {
+  en: "Slide mic & hold to speak",
+  es: "Deslice el micrófono y mantenga para hablar",
+  ht: "Glise mikwo a ak kenbe pou pale",
+  pt: "Deslize o microfone e segure para falar",
+  ru: "Сдвиньте микрофон и удерживайте, чтобы говорить",
+  zh: "滑动麦克风并按住以讲话",
+  ar: "حرك الميكروفون مع الاستمرار للتحدث",
+  vi: "Trượt micrô và giữ để nói",
+  tl: "I-slide ang mic at diinan para magsalita"
+};
+
+const PRESET_TRANSLATIONS = {
+  "Physical Exam": {
+    en: "I am going to perform a physical exam now. I will listen to your heart and lungs.",
+    es: "Voy a realizar un examen físico ahora. Voy a escuchar su corazón y pulmones.",
+    ht: "Mwen pral fè yon egzamen fizik kounye a. Mwen pral koute kè ou ak poumon ou.",
+    pt: "Vou fazer um exame físico agora. Vou ouvir seu coração e pulmões.",
+    ru: "Сейчас я проведу медицинский осмотр. Я послушаю ваше сердце и легкие.",
+    zh: "我现在要进行体检。我将听您的心脏和肺部。",
+    ar: "سأقوم بإجراء فحص بدني الآن. سأستمع إلى قلبك ورئتيك.",
+    vi: "Tôi sẽ thực hiện khám sức khỏe bây giờ. Tôi sẽ nghe tim và phổi của bạn.",
+    tl: "Magsasagawa ako ng pisikal na pagsusuri ngayon. Pakinggan ko ang iyong puso at baga."
+  },
+  "Endoscopy Prep": {
+    en: "You are scheduled for an endoscopy. You must not eat or drink anything after midnight.",
+    es: "Está programado para una endoscopia. No debe comer ni beber nada después de la medianoche.",
+    ht: "Ou pwograme pou yon andoskopi. Ou pa dwe manje ni bwè anyen apre minwi.",
+    pt: "Você tem uma endoscopia agendada. Não deve comer ou beber nada após a meia-noite.",
+    ru: "Вам назначена эндоскопия. Вы не должны ничего есть или пить после полуночи.",
+    zh: "您预定了内窥镜检查。午夜后不得吃喝任何东西。",
+    ar: "لديك موعد لتنظير داخلي. يجب ألا تأكل أو تشرب أي شيء بعد منتصف الليل.",
+    vi: "Bạn đã được đặt lịch cho nội soi. Bạn không được ăn hoặc uống bất cứ thứ gì sau nửa đêm.",
+    tl: "Naka-iskedyul ka para sa isang endoscopy. Bawal kang kumain o uminom ng kahit ano pagkatapos ng hatinggabi."
+  },
+  "Labs Normal": {
+    en: "Your lab results came back normal. There is no sign of infection.",
+    es: "Los resultados de su laboratorio regresaron normales. No hay signo de infección.",
+    ht: "Rezilta laboratwa ou yo tounen nòmal. Pa gen okenn siy enfeksyon.",
+    pt: "Seus resultados de laboratório voltaram normais. Não há sinal de infecção.",
+    ru: "Результаты ваших анализов в норме. Нет никаких признаков инфекции.",
+    zh: "您的实验室结果正常。没有感染的迹象。",
+    ar: "عادت نتائج مختبرك طبيعية. لا توجد علامة على وجود عدوى.",
+    vi: "Kết quả xét nghiệm của bạn bình thường. Không có dấu hiệu nhiễm trùng.",
+    tl: "Normal ang resulta ng lab mo. Walang senyales ng impeksyon."
+  },
+  "Pain Assessment": {
+    en: "Are you currently experiencing any pain? Can you point to where it hurts?",
+    es: "¿Está experimentando algún dolor actualmente? ¿Puede señalar dónde le duele?",
+    ht: "Èske w ap fè eksperyans nenpòt doulè kounye a? Èske ou ka montre kote li fè mal?",
+    pt: "Você está sentindo alguma dor atualmente? Pode apontar onde dói?",
+    ru: "Вы в настоящее время испытываете какую-либо боль? Можете ли вы указать, где болит?",
+    zh: "您目前感觉到疼痛吗？能指出哪里痛吗？",
+    ar: "هل تعاني من أي ألم حاليا؟ هل يمكنك الإشارة إلى المكان الذي يؤلمك؟",
+    vi: "Bạn hiện có đang đau ở đâu không? Bạn có thể chỉ vào chỗ đau được không?",
+    tl: "Nakakaranas ka ba ng anumang sakit ngayon? Maaari mo bang ituro kung saan masakit?"
+  },
+  "Prescription Instruction": {
+    en: "I will prescribe a medication. Please take it exactly as directed on the label.",
+    es: "Le recetaré un medicamento. Por favor, tómelo exactamente como se indica en la etiqueta.",
+    ht: "Mwen pral preskri yon medikaman. Tanpri pran li egzakteman jan yo mande sou etikèt la.",
+    pt: "Vou prescrever um medicamento. Por favor, tome exatamente como indicado no rótulo.",
+    ru: "Я выпишу лекарство. Пожалуйста, принимайте его точно так, как указано на этикетке.",
+    zh: "我将开一个处方药。请严格按照标签上的说明服用。",
+    ar: "سأصف لك دواء. يرجى تناوله تمامًا كما هو موضح على الملصق.",
+    vi: "Tôi sẽ kê đơn thuốc. Vui lòng uống chính xác như hướng dẫn trên nhãn.",
+    tl: "Magrameta ako ng gamot. Mangyaring inumin ito nang eksakto tulad ng itinuro sa label."
+  }
+};
+
+function updateDynamicUI() {
+  if (!state.session.active) return;
+  const srcLang = state.direction.from || 'en';
+
+  // 1. Update the placeholder instructions
+  if (!state.isRecording && originalText.textContent.includes('Slide') || originalText.textContent.includes('speak') || Object.values(INSTRUCTIONS).includes(originalText.textContent)) {
+    originalText.textContent = INSTRUCTIONS[srcLang] || INSTRUCTIONS['en'];
+    translatedText.textContent = '\u2014';
+  }
+
+  // 2. Loop through preset items and automatically cast text into correct source language
+  const presetItems = document.querySelectorAll('.preset-item');
+  presetItems.forEach(item => {
+    // Only target the Quick Phrases, ignore Interview flow preset
+    if (item.id === 'start-interview-btn') return;
+
+    // Convert DOM nodes into inner text content to match keys
+    const rawHTML = item.innerHTML.trim();
+    // Re-extract the key title (removing the line breaks and spaces)
+    let key = "Physical Exam";
+    if (rawHTML.includes("Endoscopy")) key = "Endoscopy Prep";
+    else if (rawHTML.includes("Labs")) key = "Labs Normal";
+    else if (rawHTML.includes("Pain")) key = "Pain Assessment";
+    else if (rawHTML.includes("Prescription")) key = "Prescription Instruction";
+
+    const localMatrix = PRESET_TRANSLATIONS[key];
+    if (localMatrix) {
+      const translated = localMatrix[srcLang] || localMatrix['en'];
+      item.setAttribute('data-text', translated);
+    }
+  });
 }
 
 function initSlider() {
@@ -607,6 +724,35 @@ function connectWebSocket() {
 }
 
 function speakTranslation(text, lang) {
+  if (lang === 'ht') {
+    playFishAudio(text, lang);
+  } else {
+    playBrowserVoice(text, lang);
+  }
+}
+
+function handlePostSpeech() {
+  setStatus('ready');
+  var srcLang = state.direction.from || 'en';
+  originalText.textContent = INSTRUCTIONS[srcLang] || INSTRUCTIONS['en'];
+
+  // Auto-listen for patient response in Interview Flow
+  if (state.interview && state.interview.active && state.sliderSide === 'left') {
+    setTimeout(function () {
+      snapSlider('right'); // Switch target -> EN
+      startRecording();    // Auto activate mic
+    }, 500);
+  }
+
+  setTimeout(function () {
+    var origB = document.querySelector('#original-transcript');
+    var transB = document.querySelector('#translated-transcript');
+    if (origB) origB.classList.remove('active');
+    if (transB) transB.classList.remove('active');
+  }, 2000);
+}
+
+function playBrowserVoice(text, lang) {
   if (!('speechSynthesis' in window)) { setStatus('ready'); return; }
   speechSynthesis.cancel();
   var utterance = new SpeechSynthesisUtterance(text);
@@ -614,27 +760,43 @@ function speakTranslation(text, lang) {
   utterance.lang = langInfo ? langInfo.speechCode : lang;
   utterance.rate = 0.9;
   utterance.pitch = 1.0;
-  utterance.onend = function () {
-    setStatus('ready');
-    originalText.textContent = 'Slide mic & hold to speak';
-
-    // Auto-listen for patient response in Interview Flow
-    if (state.interview && state.interview.active && state.sliderSide === 'left') {
-      setTimeout(function () {
-        snapSlider('right'); // Switch target -> EN
-        startRecording();    // Auto activate mic
-      }, 500);
-    }
-
-    setTimeout(function () {
-      var origB = document.querySelector('#original-transcript');
-      var transB = document.querySelector('#translated-transcript');
-      if (origB) origB.classList.remove('active');
-      if (transB) transB.classList.remove('active');
-    }, 2000);
-  };
+  utterance.onend = handlePostSpeech;
   utterance.onerror = function () { setStatus('ready'); };
   speechSynthesis.speak(utterance);
+}
+
+function playFishAudio(text, lang) {
+  setStatus('speaking');
+  fetch('/api/tts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: text, lang: lang })
+  })
+    .then(function (res) {
+      if (!res.ok) throw new Error('TTS failed: ' + res.status);
+      return res.blob();
+    })
+    .then(function (blob) {
+      var url = URL.createObjectURL(blob);
+      var audio = new Audio(url);
+      audio.onended = function () {
+        URL.revokeObjectURL(url);
+        handlePostSpeech();
+      };
+      audio.onerror = function () {
+        URL.revokeObjectURL(url);
+        console.warn('Fish Audio playback failed, falling back to browser voice');
+        playBrowserVoice(text, lang);
+      };
+      audio.play().catch(function () {
+        console.warn('Fish Audio play() blocked, falling back to browser voice');
+        playBrowserVoice(text, lang);
+      });
+    })
+    .catch(function (err) {
+      console.warn('Fish Audio fetch failed:', err, '— falling back to browser voice');
+      playBrowserVoice(text, lang);
+    });
 }
 
 /* ── Interview Flow ── */

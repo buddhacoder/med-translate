@@ -7,7 +7,8 @@ import logging
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, File, Form, UploadFile, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, File, Form, UploadFile, HTTPException, Response
+from pydantic import BaseModel
 import httpx
 import uuid
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,8 +29,10 @@ async def lifespan(app):
     await app.state.translation.initialize()
     app.state.audit = AuditLogger()
     app.state.sessions = SessionManager()
+    app.state.http = httpx.AsyncClient(timeout=30.0)
     logger.info("All services initialized")
     yield
+    await app.state.http.aclose()
     await app.state.translation.shutdown()
     logger.info("MedTranslate server stopped")
 
@@ -56,6 +59,44 @@ async def health():
         "service": "MedTranslate",
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
+
+
+# ── TTS Proxy (forwards to Modal serverless function) ───────────────
+class TTSRequest(BaseModel):
+    text: str
+    lang: str = "ht"
+
+
+@app.post("/api/tts")
+async def text_to_speech(req: TTSRequest):
+    """
+    Proxy TTS requests to Modal serverless endpoint.
+    Modal runs the Meta MMS model on-demand (scales to zero when idle).
+    """
+    if not settings.modal_tts_url:
+        raise HTTPException(status_code=503, detail="TTS endpoint not configured")
+
+    try:
+        resp = await app.state.http.post(
+            settings.modal_tts_url,
+            json={"text": req.text, "lang": req.lang},
+        )
+        resp.raise_for_status()
+
+        return Response(
+            content=resp.content,
+            media_type=resp.headers.get("content-type", "audio/wav"),
+            headers={"Content-Disposition": "inline"},
+        )
+    except httpx.HTTPStatusError as e:
+        logger.error("Modal TTS error: %s %s", e.response.status_code, e.response.text[:200])
+        raise HTTPException(status_code=502, detail="TTS generation failed")
+    except httpx.TimeoutException:
+        logger.error("Modal TTS timeout")
+        raise HTTPException(status_code=504, detail="TTS request timed out")
+    except Exception as e:
+        logger.error("TTS proxy error: %s", e)
+        raise HTTPException(status_code=500, detail="TTS error")
 
 
 @app.post("/api/train")

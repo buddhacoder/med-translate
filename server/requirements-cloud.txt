@@ -1,0 +1,9 @@
+# Cloud deployment (Railway) — no PyTorch needed, TTS is on Modal
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+websockets==14.1
+python-dotenv==1.0.1
+pydantic-settings==2.7.0
+httpx==0.28.0
+cryptography==44.0.0
+python-multipart==0.0.12

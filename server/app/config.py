@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     riva_api_url: str = ""
     riva_api_key: str = ""
 
+    # Fish Audio TTS (legacy, kept for future voice cloning)
+    fish_audio_api_key: str = ""
+    fish_audio_model: str = "s1"
+
+    # Modal TTS (Haitian Creole via Meta MMS)
+    modal_tts_url: str = ""
+
     # Supabase
     supabase_url: str = ""
     supabase_anon_key: str = ""
@@ -25,7 +32,7 @@ class Settings(BaseSettings):
     server_port: int = 8443
     session_timeout_minutes: int = 30
     max_session_duration_minutes: int = 120
-    supported_languages: str = "en,es,ht"
+    supported_languages: str = "en,es,ht,fr,pt,ru,zh,ar,vi,tl"
     default_language_pair: str = "en-es"
 
     # TLS
