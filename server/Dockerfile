@@ -7,6 +7,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ app/
 
-EXPOSE 8443
+# Railway sets PORT dynamically — don't hardcode
+ENV PORT=8443
+EXPOSE $PORT
 
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8443"]
+CMD python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
