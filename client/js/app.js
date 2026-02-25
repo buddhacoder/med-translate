@@ -1069,7 +1069,7 @@ async function fetchValidationQueue() {
   valStatus.textContent = "Fetching audio queue...";
   valApproveBtn.disabled = true; valRejectBtn.disabled = true;
   try {
-    const res = await fetch('http://localhost:8443/api/train/queue');
+    const res = await fetch('/api/train/queue');
     validationQueue = await res.json();
     if (validationQueue.length === 0) {
       valPhrase.textContent = "Queue is empty! Great job.";
@@ -1107,7 +1107,7 @@ async function submitReview(isApproved) {
   fd.append('pin', state.pin);
 
   try {
-    await fetch('http://localhost:8443/api/train/review', { method: 'POST', body: fd });
+    await fetch('/api/train/review', { method: 'POST', body: fd });
     nextValidationItem();
   } catch (e) {
     valStatus.textContent = "Error submitting. Try again.";
