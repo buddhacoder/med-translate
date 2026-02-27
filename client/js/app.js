@@ -6,8 +6,9 @@
 
 var CONFIG = {
   WS_URL: 'wss://med-translate-production.up.railway.app/ws',
-  RECONNECT_MAX: 5,
-  RECONNECT_DELAY: 2000
+  RECONNECT_DELAY: 2000,
+  RECONNECT_MAX_DELAY: 30000,
+  HEARTBEAT_INTERVAL: 25000
 };
 
 var LANGUAGES = {
@@ -32,7 +33,7 @@ var state = {
   session: { id: null, active: false },
   recognition: null,
   isRecording: false,
-  ws: { socket: null, reconnectAttempts: 0, connected: false },
+  ws: { socket: null, reconnectAttempts: 0, connected: false, heartbeatTimer: null },
   // Recording timer
   recStartTime: null,
   recElapsed: 0,
@@ -42,7 +43,9 @@ var state = {
   isDragging: false,
   dragStartX: 0,
   // Interview Flow
-  interview: { active: false, stepIndex: 0, answers: [] }
+  interview: { active: false, stepIndex: 0, answers: [] },
+  // Settings
+  settings: { ttsEnabled: true, speechRate: 1.0 }
 };
 
 var INTERVIEW_FLOWS = {
@@ -97,8 +100,6 @@ function cacheDom() {
   startBtn = document.querySelector('#start-session-btn');
   connectionDot = document.querySelector('#connection-dot');
   sessionTimer = document.querySelector('#session-timer');
-  activeFrom = document.querySelector('#active-from');
-  activeTo = document.querySelector('#active-to');
   waveformStatus = document.querySelector('#waveform-status');
   statusText = document.querySelector('#status-text');
   originalText = document.querySelector('#original-text');
@@ -337,8 +338,7 @@ function updateDirectionFromSlider() {
 }
 
 function updateDirectionDisplay() {
-  activeFrom.textContent = state.direction.from.toUpperCase();
-  activeTo.textContent = state.direction.to.toUpperCase();
+  // EN>ES badge removed from UI — direction tracked in state.direction only
 }
 
 function snapSlider(side) {
@@ -667,6 +667,22 @@ function sendForTranslation(text) {
   }
 }
 
+function startHeartbeat(ws) {
+  stopHeartbeat();
+  state.ws.heartbeatTimer = setInterval(function () {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'ping' }));
+    }
+  }, CONFIG.HEARTBEAT_INTERVAL);
+}
+
+function stopHeartbeat() {
+  if (state.ws.heartbeatTimer) {
+    clearInterval(state.ws.heartbeatTimer);
+    state.ws.heartbeatTimer = null;
+  }
+}
+
 function connectWebSocket() {
   return new Promise(function (resolve, reject) {
     try {
@@ -679,6 +695,7 @@ function connectWebSocket() {
         state.ws.connected = true;
         state.ws.reconnectAttempts = 0;
         connectionDot.classList.remove('disconnected');
+        startHeartbeat(ws);
         ws.send(JSON.stringify({
           type: 'start_session',
           session_id: state.session.id,
@@ -691,21 +708,30 @@ function connectWebSocket() {
       ws.onmessage = function (event) {
         try {
           var msg = JSON.parse(event.data);
+          if (msg.type === 'pong') return; // ignore heartbeat replies
           console.log('WS:', msg);
           if (msg.type === 'translation') {
+            var origText = originalText.textContent;
             translatedText.textContent = msg.text;
             var origB = document.querySelector('#original-transcript');
             var transB = document.querySelector('#translated-transcript');
             if (origB) origB.classList.add('active');
             if (transB) transB.classList.add('active');
 
+            // Append to history log
+            appendHistory(origText, msg.text, state.direction);
+
             // Capture Patient Answer in Interview Flow
             if (state.interview && state.interview.active && state.sliderSide === 'right' && state.direction.to === 'en') {
               state.interview.answers[state.interview.stepIndex] = msg.text;
-              setStatus('ready'); // Prevent TTS from speaking English back to the doctor
+              setStatus('ready');
             } else {
               setStatus('speaking');
-              speakTranslation(msg.text, state.direction.to);
+              if (state.settings.ttsEnabled) {
+                speakTranslation(msg.text, state.direction.to);
+              } else {
+                setTimeout(handlePostSpeech, 800);
+              }
             }
           } else if (msg.type === 'error') {
             showToast(msg.message);
@@ -716,12 +742,17 @@ function connectWebSocket() {
 
       ws.onclose = function () {
         state.ws.connected = false;
+        stopHeartbeat();
         connectionDot.classList.add('disconnected');
-        if (state.session.active && state.ws.reconnectAttempts < CONFIG.RECONNECT_MAX) {
+        if (state.session.active) {
           state.ws.reconnectAttempts++;
+          var delay = Math.min(
+            CONFIG.RECONNECT_DELAY * Math.pow(1.5, state.ws.reconnectAttempts),
+            CONFIG.RECONNECT_MAX_DELAY
+          );
           setTimeout(function () {
             connectWebSocket().catch(function (e) { console.warn('Reconnect fail:', e); });
-          }, CONFIG.RECONNECT_DELAY * state.ws.reconnectAttempts);
+          }, delay);
         }
       };
 
@@ -768,7 +799,7 @@ function playBrowserVoice(text, lang) {
   var utterance = new SpeechSynthesisUtterance(text);
   var langInfo = LANGUAGES[lang];
   utterance.lang = langInfo ? langInfo.speechCode : lang;
-  utterance.rate = 0.9;
+  utterance.rate = state.settings.speechRate || 0.9;
   utterance.pitch = 1.0;
   utterance.onend = handlePostSpeech;
   utterance.onerror = function () { setStatus('ready'); };
@@ -959,9 +990,121 @@ function init() {
   initPresetsMenu();
   initInterviewFlow();
   initManualInput();
+  initSettings();
   registerSW();
-  // Skip PIN for testing — go straight to specialty select
   showScreen('specialty');
+}
+
+/* ── History Log ── */
+function appendHistory(original, translated, direction) {
+  var log = document.getElementById('history-log');
+  if (!log || !original || original === 'Slide mic & hold to speak') return;
+  var entry = document.createElement('div');
+  entry.className = 'history-entry';
+  var fromLabel = (direction.from || 'en').toUpperCase();
+  var toLabel = (direction.to || 'es').toUpperCase();
+  entry.innerHTML = `
+    <div class="hist-original">${fromLabel}: ${original}</div>
+    <div class="hist-translated">${toLabel}: ${translated}</div>
+    <div class="hist-meta">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+  `;
+  log.appendChild(entry);
+  // Keep only last 20 entries
+  while (log.children.length > 20) log.removeChild(log.firstChild);
+  // Scroll to bottom of transcript area
+  var ta = document.querySelector('.transcript-area');
+  if (ta) ta.scrollTop = ta.scrollHeight;
+}
+
+/* ── Settings Panel ── */
+function initSettings() {
+  // Create settings slide-up panel dynamically
+  var panel = document.createElement('div');
+  panel.id = 'settings-panel';
+  panel.style.cssText = `
+    position: fixed; bottom: 0; left: 0; width: 100vw;
+    background: rgba(10, 14, 26, 0.97);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(82,153,224,0.3);
+    border-radius: 24px 24px 0 0;
+    padding: 1.5rem 1.5rem calc(env(safe-area-inset-bottom, 1rem) + 1rem);
+    z-index: 10000;
+    transform: translateY(100%); opacity: 0; pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+  `;
+  panel.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+      <div style="font-weight:700; font-size:1rem; color:#fff;">Settings</div>
+      <button id="settings-close-btn" style="background:none;border:none;color:#8da4c0;cursor:pointer;font-size:1.4rem;">&#x2715;</button>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+      <span style="color:#94a3b8; font-size:0.95rem;">Voice Playback (TTS)</span>
+      <label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer;">
+        <input type="checkbox" id="tts-toggle" checked style="opacity:0;width:0;height:0;">
+        <span id="tts-slider-vis" style="position:absolute;inset:0;border-radius:13px;background:#2a354d;transition:0.3s;">
+          <span style="position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:0.3s;" id="tts-knob"></span>
+        </span>
+      </label>
+    </div>
+    <div style="padding:0.75rem 0;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+        <span style="color:#94a3b8;font-size:0.95rem;">Speech Rate</span>
+        <span id="speech-rate-display" style="color:#06d6a0;font-size:0.9rem;font-weight:600;">1.0×</span>
+      </div>
+      <input type="range" id="speech-rate-slider" min="0.6" max="1.4" step="0.1" value="1.0"
+        style="width:100%;accent-color:#06d6a0;cursor:pointer;">
+    </div>
+  `;
+  document.getElementById('app').appendChild(panel);
+
+  var toggleBtn = document.getElementById('settings-toggle-btn');
+  var closeBtn;
+  var ttsCheck;
+  var rateSlider;
+  var rateDisplay;
+
+  function openSettings() {
+    panel.style.transform = 'translateY(0)';
+    panel.style.opacity = '1';
+    panel.style.pointerEvents = 'auto';
+    if (toggleBtn) toggleBtn.style.color = '#06d6a0';
+  }
+
+  function closeSettings() {
+    panel.style.transform = 'translateY(100%)';
+    panel.style.opacity = '0';
+    panel.style.pointerEvents = 'none';
+    if (toggleBtn) toggleBtn.style.color = '#5299e0';
+  }
+
+  if (toggleBtn) toggleBtn.addEventListener('click', openSettings);
+
+  // Wait for panel to be in DOM
+  setTimeout(function () {
+    closeBtn = document.getElementById('settings-close-btn');
+    ttsCheck = document.getElementById('tts-toggle');
+    rateSlider = document.getElementById('speech-rate-slider');
+    rateDisplay = document.getElementById('speech-rate-display');
+    var knob = document.getElementById('tts-knob');
+    var visSlider = document.getElementById('tts-slider-vis');
+
+    if (closeBtn) closeBtn.addEventListener('click', closeSettings);
+
+    if (ttsCheck) {
+      ttsCheck.addEventListener('change', function () {
+        state.settings.ttsEnabled = this.checked;
+        if (visSlider) visSlider.style.background = this.checked ? '#06d6a0' : '#2a354d';
+        if (knob) knob.style.transform = this.checked ? 'translateX(22px)' : 'translateX(0)';
+      });
+    }
+
+    if (rateSlider) {
+      rateSlider.addEventListener('input', function () {
+        state.settings.speechRate = parseFloat(this.value);
+        if (rateDisplay) rateDisplay.textContent = parseFloat(this.value).toFixed(1) + '×';
+      });
+    }
+  }, 100);
 }
 
 function initPresetsMenu() {
@@ -989,7 +1132,7 @@ function initPresetsMenu() {
       }
     });
 
-    // Handle clicking a specific preset item
+    // Handle clicking a specific preset item — panel stays open for quick consecutive phrases
     const presetItems = document.querySelectorAll('.preset-item');
     presetItems.forEach(item => {
       item.addEventListener('click', function () {
@@ -997,10 +1140,7 @@ function initPresetsMenu() {
         if (textToTranslate) {
           originalText.textContent = textToTranslate;
           sendForTranslation(textToTranslate);
-
-          // Collapse menu after selection
-          presetsMenu.classList.add('hidden');
-          toggleBtn.classList.remove('active');
+          // Panel intentionally stays open so user can fire another phrase immediately
         }
       });
     });

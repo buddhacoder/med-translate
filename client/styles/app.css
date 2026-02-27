@@ -79,6 +79,10 @@ body::before {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  /* Prevent accidental text selection on tap */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .hidden {
@@ -945,27 +949,54 @@ body::before {
   align-items: center;
 }
 
+/* Presets glow button — animated gradient border */
+@property --glow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes glow-spin {
+  to {
+    --glow-angle: 360deg;
+  }
+}
+
 .btn-preset-toggle {
-  background: rgba(10, 14, 26, 0.6);
-  border: 1px solid rgba(82, 153, 224, 0.2);
-  color: var(--text-secondary);
-  padding: 0.6rem 1.2rem;
+  position: relative;
+  background: rgba(10, 14, 26, 0.75);
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+  color: #00f0ff;
+  padding: 0.6rem 1.3rem;
   border-radius: 20px;
   font-size: 0.9rem;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition: all 0.2s ease;
+  animation: glow-spin 3s linear infinite;
+  box-shadow:
+    0 0 8px rgba(0, 240, 255, 0.25),
+    0 0 20px rgba(6, 214, 160, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  outline: 1.5px solid;
+  outline-color: color-mix(in hsl,
+      hsl(calc(180 + var(--glow-angle, 0deg)), 100%, 60%) 60%,
+      hsl(calc(280 + var(--glow-angle, 0deg)), 100%, 65%) 40%);
 }
 
 .btn-preset-toggle:hover,
 .btn-preset-toggle.active {
-  background: rgba(82, 153, 224, 0.15);
-  border-color: rgba(82, 153, 224, 0.4);
-  color: var(--text-primary);
+  color: #ffffff;
+  box-shadow:
+    0 0 14px rgba(0, 240, 255, 0.45),
+    0 0 30px rgba(6, 214, 160, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .presets-menu {
@@ -1056,4 +1087,94 @@ body::before {
   transform: scale(0.98);
   background: rgba(82, 153, 224, 0.25);
   border-color: rgba(82, 153, 224, 0.5);
+}
+
+/* ── Narrow Mic Slider ── */
+.slider-track {
+  max-width: 260px !important;
+  margin: 0 auto;
+}
+
+/* ── Speaking Pulse (TTS visual feedback) ── */
+@keyframes speaking-bar {
+
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.speaking-pulse {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0.4rem 0;
+}
+
+.speaking-pulse span {
+  display: inline-block;
+  width: 4px;
+  height: 22px;
+  border-radius: 3px;
+  background: linear-gradient(to top, #06d6a0, #00f0ff);
+  animation: speaking-bar 0.9s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+.speaking-pulse span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.speaking-pulse span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.speaking-pulse span:nth-child(4) {
+  animation-delay: 0.15s;
+}
+
+/* ── Session History Log ── */
+.history-log {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0 0.25rem;
+}
+
+.history-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.82rem;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.history-entry:hover {
+  opacity: 0.9;
+}
+
+.history-entry .hist-original {
+  color: #64748b;
+  font-style: italic;
+}
+
+.history-entry .hist-translated {
+  color: #94a3b8;
+}
+
+.history-entry .hist-meta {
+  color: #334155;
+  font-size: 0.72rem;
+  margin-top: 0.1rem;
 }
