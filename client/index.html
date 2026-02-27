@@ -185,11 +185,12 @@
 
 
     <!-- SCREEN 1.5: Specialty Select -->
-    <div id="specialty-screen" class="screen setup-screen hidden">
-      <div class="logo animate-slide-up" style="text-align:center;">
-        <img src="/images/logo-wide.svg" alt="MedTranslate" style="max-width:220px;height:auto;margin:0 auto 0.5rem;">
-        <h1>Your Specialty</h1>
-        <p class="subtitle">Customize your clinical phrases</p>
+    <div id="specialty-screen" class="screen setup-screen hidden"
+      style="justify-content: flex-start; padding-top: 2.5rem;">
+      <div class="logo animate-slide-up" style="text-align:center; margin-bottom:1.5rem;">
+        <img src="/images/logo-wide.svg" alt="MedTranslate" style="max-width:300px;height:auto;margin:0 auto 1rem;">
+        <h1 style="font-size:1.1rem; font-weight:600; color:#94a3b8; margin-bottom:0.25rem;">Your Specialty</h1>
+        <p class="subtitle" style="font-size:0.82rem;">Customize your clinical phrases</p>
       </div>
       <div class="card animate-slide-up-delay-1" style="width: 100%;">
         <div class="specialty-grid" id="specialty-grid">
@@ -232,12 +233,12 @@
     </div>
 
     <!-- SCREEN 2: Language Setup -->
-    <div id="setup-screen" class="screen setup-screen hidden">
-      <div class="logo animate-slide-up">
+    <div id="setup-screen" class="screen setup-screen hidden" style="justify-content: flex-start; padding-top: 2.5rem;">
+      <div class="logo animate-slide-up" style="margin-bottom:1.5rem;">
         <div class="logo-icon logo-icon-lang" style="display:none;"></div>
-        <img src="/images/logo-wide.svg" alt="MedTranslate" style="max-width:280px;height:auto;margin:0 auto 0.5rem;">
-        <h1>Select Language</h1>
-        <p class="subtitle">Choose the patient's primary language</p>
+        <img src="/images/logo-wide.svg" alt="MedTranslate" style="max-width:300px;height:auto;margin:0 auto 1rem;">
+        <h1 style="font-size:1.1rem; font-weight:600; color:#94a3b8; margin-bottom:0.25rem;">Select Language</h1>
+        <p class="subtitle" style="font-size:0.82rem;">Choose the patient's primary language</p>
 
 
       </div>
@@ -316,8 +317,11 @@
     </div>
     <!-- SCREEN 3: Active Translation (fixed layout) -->
     <div id="session-screen" class="screen session-screen hidden">
-      <!-- Top bar (minimal) -->
+      <!-- Top bar: logo left, settings gear right -->
       <div class="session-topbar">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <img src="/images/logo-wide.svg" alt="MedTranslate" style="height:28px; width:auto;">
+        </div>
         <button id="settings-toggle-btn"
           style="background:none; border:none; color:#5299e0; cursor:pointer; padding:6px; display:flex; align-items:center;"
           aria-label="Settings">
@@ -359,8 +363,8 @@
           <div class="source-label">TRANSLATION</div>
           <div class="transcript-text" id="translated-text">&mdash;</div>
         </div>
-        <!-- Session history log -->
-        <div class="history-log" id="history-log"></div>
+        <!-- Session history log — max-height capped, scrollable, never pushes main bubbles -->
+        <div class="history-log" id="history-log" style="max-height:22vh; overflow-y:auto; flex-shrink:0;"></div>
       </div>
 
       <!-- Hidden compat elements -->

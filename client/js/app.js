@@ -765,11 +765,9 @@ function connectWebSocket() {
 }
 
 function speakTranslation(text, lang) {
-  if (lang === 'ht') {
-    playFishAudio(text, lang);
-  } else {
-    playBrowserVoice(text, lang);
-  }
+  // All languages use browser TTS for instant playback
+  // Fish Audio (ht) was causing 3-5s round-trip delay via Railway
+  playBrowserVoice(text, lang);
 }
 
 function handlePostSpeech() {
